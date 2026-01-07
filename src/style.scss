@@ -1,0 +1,196 @@
+/**
+ * Frontend styles for GatherPress Magic Menu block.
+ *
+ * This file inherits most styling from the parent navigation block
+ * to maintain visual consistency with native navigation links.
+ *
+ * BEM Structure:
+ * - Block: .gatherpress-magic-menu
+ * - Element: .gatherpress-magic-menu__count
+ * - Modifier: .gatherpress-magic-menu--disabled
+ *
+ * @package GatherPressMagicMenu
+ */
+
+/**
+ * Block: GatherPress Magic Menu
+ * Base styles for the navigation block integration.
+ */
+.wp-block-telex-block-gatherpress-magic-menu {
+	/* Inherits styles from .wp-block-navigation-item */
+	/* Add custom frontend styles here if needed */
+}
+
+/**
+ * Modifier: Disabled State
+ * Applied when there are no upcoming events.
+ */
+.gatherpress-magic-menu--disabled {
+	a[aria-disabled="true"] {
+		opacity: 0.5;
+		cursor: not-allowed;
+		pointer-events: none;
+		text-decoration: none;
+
+		&:hover,
+		&:focus {
+			text-decoration: none;
+			color: inherit;
+		}
+	}
+}
+
+/**
+ * Element: Event Count
+ * Base styles for the event count display.
+ */
+.gatherpress-magic-menu__count {
+	margin-left: 0.25em;
+
+	&::before {
+		content: " (";
+	}
+
+	&::after {
+		content: ")";
+	}
+}
+
+/**
+ * Block Style: Default
+ * Minimal styling with parentheses and spacing.
+ */
+.is-style-default {
+	.gatherpress-magic-menu__count {
+		margin-left: 0.25em;
+
+		&::before {
+			content: " (";
+		}
+
+		&::after {
+			content: ")";
+		}
+	}
+}
+
+/**
+ * Block Style: Badge
+ * A subtle notification-style indicator positioned at the top right.
+ */
+.is-style-badge {
+	.wp-block-navigation-item__content {
+		position: relative;
+	}
+
+	.gatherpress-magic-menu__count {
+		position: absolute;
+		top: -0.5em;
+		right: -0.75em;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.5em;
+		height: 1.5em;
+		padding: 0.2em 0.4em;
+		margin-left: 0;
+		border-radius: 999px;
+		background: #4a90e2;
+		color: #ffffff;
+		font-weight: 600;
+		font-size: 0.65em;
+		line-height: 1;
+		box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+		transition: all 0.2s ease;
+
+		&::before,
+		&::after {
+			content: none;
+		}
+	}
+
+	a:hover,
+	a:focus {
+		.gatherpress-magic-menu__count {
+			background: #357abd;
+			box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
+		}
+	}
+}
+
+/**
+ * Block Style: Starburst
+ * An eye-catching, energetic design with rotation and vibrant styling.
+ */
+.is-style-starburst {
+	.gatherpress-magic-menu__count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.8em;
+		height: 1.8em;
+		padding: 0.25em;
+		margin-left: 0.5em;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #d63638 0%, #f0134d 100%);
+		color: #ffffff;
+		font-weight: 700;
+		font-size: 0.7em;
+		line-height: 1;
+		vertical-align: middle;
+		box-shadow: 
+			0 0 0 2px #ffffff,
+			0 0 0 3px #d63638,
+			0 2px 8px rgba(0, 0, 0, 0.15);
+		transform: rotate(-5deg);
+		transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+		&::before,
+		&::after {
+			content: none;
+		}
+	}
+
+	a:hover,
+	a:focus {
+		.gatherpress-magic-menu__count {
+			transform: rotate(5deg) scale(1.15);
+			background: linear-gradient(135deg, #b32d2e 0%, #d40e40 100%);
+			box-shadow: 
+				0 0 0 2px #ffffff,
+				0 0 0 3px #d63638,
+				0 4px 12px rgba(0, 0, 0, 0.25),
+				0 0 20px rgba(214, 54, 56, 0.4);
+		}
+	}
+}
+
+/**
+ * Submenu Spacing
+ * Ensure proper spacing for counts in submenus.
+ */
+.wp-block-navigation-submenu {
+	.gatherpress-magic-menu__count {
+		margin-left: auto;
+		margin-right: 0;
+	}
+}
+
+/**
+ * Disabled State Adjustments
+ * Remove effects when the link is disabled.
+ */
+.gatherpress-magic-menu--disabled {
+	.is-style-badge,
+	.is-style-starburst {
+		.gatherpress-magic-menu__count {
+			opacity: 0.5;
+			box-shadow: none;
+			transform: none;
+		}
+	}
+
+	.gatherpress-magic-menu__count {
+		opacity: 0.5;
+	}
+}

@@ -1,0 +1,1736 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artefact xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="artefact.xsd" name="GatherPress Magic Menu" slug="gatherpress-magic-menu" type="code-package" schemaVersion="2">
+  <file path="readme.txt">
+    <description>This file contains the readme information for the block. It is used to provide information about the block, its usage, and any other relevant details.</description>
+    <content><![CDATA[=== GatherPress Magic Menu ===
+
+Contributors:      WordPress Telex
+Tags:              block, navigation, gatherpress, events, taxonomy
+Tested up to:      6.8
+Stable tag:        0.1.0
+License:           GPLv2 or later
+License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+A navigation block that creates dynamic menus for GatherPress events, with support for taxonomy filtering and event counts.
+
+== Description ==
+
+The GatherPress Magic Menu block adds a navigation item to your site's navigation that links to your events archive. It can optionally create submenus based on GatherPress taxonomies (Topics, Venues, or custom taxonomies), with each term becoming a submenu item.
+
+The block integrates with WordPress's native Navigation block and inherits its styling. It includes performance optimizations through transient caching and automatic cache invalidation when events are published, unpublished, or their taxonomy terms change.
+
+**Core Features:**
+
+* Links to the GatherPress events post type archive
+* Optional taxonomy-based submenus (one level deep)
+* Display upcoming event counts next to labels
+* Three visual styles for event count display (default, badge, starburst)
+* Automatic cache management (7-day expiry, invalidated on event changes)
+* Prevents navigation to archive when no upcoming events exist
+* Works only inside Navigation blocks (parent: core/navigation)
+
+**Event Counting:**
+
+* Main archive link can show total upcoming events count
+* Submenu term links can show per-term upcoming events count
+* Event counts are calculated and cached for performance
+* Counts update automatically when event status or terms change
+
+**Caching Behavior:**
+
+* Upcoming events query results cached for 7 days
+* Taxonomy term data cached separately per taxonomy
+* Caches cleared when:
+  - Event post status changes to/from 'publish'
+  - Terms are assigned to or removed from events
+
+== Installation ==
+
+1. Upload plugin files to `/wp-content/plugins/gatherpress-magic-menu/` or install via WordPress plugins screen
+2. Activate the plugin
+3. Open the Site Editor or a page/post in the block editor
+4. Add or edit a Navigation block
+5. Inside the Navigation block, add "GatherPress Magic Menu"
+6. Configure the block settings in the sidebar
+
+== Usage Examples ==
+
+= Example 1: Simple Events Link =
+
+Add the block to your navigation with no taxonomy selected. This creates a single link to your events archive with an optional event count.
+
+Settings:
+- Filter by Taxonomy: All Events
+- Show Event Count: Enabled
+
+Result: "Events (12)" linking to your events archive
+
+= Example 2: Events by Topic =
+
+Create a submenu organized by GatherPress Topics taxonomy.
+
+Settings:
+- Filter by Taxonomy: Topics
+- Show Event Count: Enabled (shows total for main link)
+- Show Term Event Count: Enabled (shows count per topic)
+
+Result:
+- Events (12)
+  - Code Review (3)
+  - Social Meetup (5)
+  - Workshop (4)
+
+= Example 3: Events by Venue =
+
+Create a submenu organized by GatherPress Venues taxonomy without counts.
+
+Settings:
+- Filter by Taxonomy: Venues  
+- Show Event Count: Disabled
+- Show Term Event Count: Disabled
+
+Result:
+- Events
+  - Community Center
+  - Downtown Library
+  - Online
+
+= Example 4: Styled Event Counts =
+
+Use block styles to visually emphasize event counts.
+
+Settings:
+- Filter by Taxonomy: Topics
+- Show Event Count: Enabled
+- Block Style: Badge (or Starburst)
+
+The "badge" style displays the count as a small notification indicator, while "starburst" uses a more prominent circular design.
+
+== Frequently Asked Questions ==
+
+= Does this require GatherPress? =
+
+The block is designed for GatherPress event post types. It will function without GatherPress but won't display any events or taxonomies.
+
+= What happens when there are no upcoming events? =
+
+The link to the events archive is displayed with aria-disabled="true" and styled to indicate it's disabled. JavaScript prevents clicks on the link.
+
+= Can I customize which taxonomies appear? =
+
+The block shows all taxonomies registered with the gatherpress_event post type. You select one taxonomy per block instance in the block settings.
+
+= How deep do submenus go? =
+
+Submenus are one level deep. Each term in the selected taxonomy becomes a submenu item. Nested term hierarchies are flattened.
+
+= What defines an "upcoming event"? =
+
+The block uses GatherPress's built-in 'upcoming' event query parameter, which respects GatherPress's event date logic.
+
+= Can I use multiple instances? =
+
+Yes. You can add multiple GatherPress Magic Menu blocks to the same or different navigation menus, each configured differently.
+
+= How often do event counts update? =
+
+Caches expire after 7 days but are automatically cleared when:
+- An event is published or unpublished  
+- Terms are added to or removed from events
+
+= Can I clear the cache manually? =
+
+The cache clears automatically. To force a refresh, temporarily unpublish and republish an event.
+
+== Changelog ==
+
+= 0.1.0 =
+* Initial release
+* Navigation link to GatherPress events archive
+* Optional taxonomy-based submenus
+* Event count display for archive and term links
+* Three block styles: default, badge, starburst
+* Transient caching with automatic invalidation
+* Disabled state when no upcoming events
+* Integration with WordPress Navigation block
+
+== Technical Notes ==
+
+**Performance Optimizations:**
+
+* Minimal transient data structure (stores only IDs, names, and counts)
+* Separate caches for events query and each taxonomy
+* Cache invalidation hooks on post status and term changes
+* HTML Processor API for attribute manipulation
+
+**Block Structure:**
+
+* Parent block: core/navigation
+* Renders as: core/navigation-link or core/navigation-submenu
+* Inherits navigation block styling
+* Custom styles applied only to .event-count elements
+
+**Attributes:**
+
+* label (string): Custom label text (fallback: post type plural label)
+* gatherpressTaxonomy (string): Selected taxonomy slug
+* showEventCount (boolean): Display count on main link
+* showTermEventCount (boolean): Display count on term links]]></content>
+  </file>
+  <file path="gatherpress-magic-menu.php">
+    <description>This file contains the block registration code in the form of a single block plugin. Any other plugin related functionality should be added to this file. All block rendering functionality should go to the `render.php` file.</description>
+    <content><![CDATA[<?php
+/**
+ * Plugin Name:       GatherPress Magic Menu
+ * Description:       A specialized navigation link block that dynamically links to the GatherPress events archive with customizable label.
+ * Version:           0.1.0
+ * Requires at least: 6.4
+ * Requires PHP:      7.4
+ * Author:            WordPress Telex
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       gatherpress-magic-menu
+ *
+ * @package GatherPressMagicMenu
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Main plugin class implementing Singleton pattern.
+ *
+ * This class handles block registration and ensures only one instance
+ * of the plugin is running at any given time.
+ *
+ * @since 0.1.0
+ */
+final class GatherPress_Magic_Menu {
+	/**
+	 * The single instance of the class.
+	 *
+	 * @since 0.1.0
+	 * @var GatherPress_Magic_Menu|null
+	 */
+	private static $instance = null;
+
+	/**
+	 * Plugin version.
+	 *
+	 * @since 0.1.0
+	 * @var string
+	 */
+	const VERSION = '0.1.0';
+
+	/**
+	 * Transient expiry time in seconds (7 days).
+	 *
+	 * @since 0.1.0
+	 * @var int
+	 */
+	const CACHE_EXPIRY = 604800;
+
+	/**
+	 * Main plugin instance.
+	 *
+	 * Ensures only one instance of the plugin is loaded or can be loaded.
+	 *
+	 * @since 0.1.0
+	 * @return GatherPress_Magic_Menu The single instance.
+	 */
+	public static function instance(): GatherPress_Magic_Menu {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * Private constructor to prevent direct instantiation.
+	 * Initializes hooks and filters.
+	 *
+	 * @since 0.1.0
+	 */
+	private function __construct() {
+		add_action( 'init', array( $this, 'register_block' ) );
+		add_action( 'transition_post_status', array( $this, 'clear_cache_on_status_change' ), 10, 3 );
+		add_action( 'set_object_terms', array( $this, 'clear_cache_on_terms_change' ), 10, 6 );
+	}
+
+	/**
+	 * Prevent cloning of the instance.
+	 *
+	 * @since 0.1.0
+	 * @return void
+	 */
+	private function __clone() {}
+
+	/**
+	 * Prevent unserializing of the instance.
+	 *
+	 * @since 0.1.0
+	 * @return void
+	 */
+	public function __wakeup() {
+		throw new \Exception( 'Cannot unserialize singleton' );
+	}
+
+	/**
+	 * Registers the block type.
+	 *
+	 * Registers the block using the metadata loaded from the `block.json` file.
+	 * Behind the scenes, it also registers all assets so they can be enqueued
+	 * through the block editor in the corresponding context.
+	 *
+	 * @since 0.1.0
+	 * @see https://developer.wordpress.org/reference/functions/register_block_type/
+	 * @return void
+	 */
+	public function register_block(): void {
+		register_block_type( __DIR__ . '/build/' );
+	}
+
+	/**
+	 * Clears all caches when an event post status changes.
+	 *
+	 * Triggers when a post transitions from or to 'publish' status.
+	 * Clears both upcoming events cache and all taxonomy-specific term caches.
+	 *
+	 * @since 0.1.0
+	 * @param string  $new_status New post status.
+	 * @param string  $old_status Old post status.
+	 * @param WP_Post $post       Post object.
+	 * @return void
+	 */
+	public function clear_cache_on_status_change( string $new_status, string $old_status, WP_Post $post ): void {
+		// Only clear cache if this is a gatherpress_event post.
+		if ( 'gatherpress_event' !== $post->post_type ) {
+			return;
+		}
+
+		// Only clear cache if status changed from or to 'publish'.
+		if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+			return;
+		}
+
+		// Clear upcoming events cache.
+		delete_transient( 'gatherpress_magic_menu_upcoming_events' );
+
+		// Clear all taxonomy-specific term caches.
+		global $wpdb;
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+				$wpdb->esc_like( '_transient_gatherpress_magic_menu_terms_' ) . '%'
+			)
+		);
+	}
+
+	/**
+	 * Clears taxonomy-specific caches when terms are assigned to an event.
+	 *
+	 * Triggers when terms are set on a post (added, updated, or removed).
+	 * Only processes gatherpress_event posts and taxonomies registered with that post type.
+	 *
+	 * @since 0.1.0
+	 * @param int    $object_id  Object ID.
+	 * @param array  $terms      An array of object term IDs or slugs.
+	 * @param array  $tt_ids     An array of term taxonomy IDs.
+	 * @param string $taxonomy   Taxonomy slug.
+	 * @param bool   $append     Whether to append new terms to the old terms.
+	 * @param array  $old_tt_ids Old array of term taxonomy IDs.
+	 * @return void
+	 */
+	public function clear_cache_on_terms_change( int $object_id, array $terms, array $tt_ids, string $taxonomy, bool $append, array $old_tt_ids ): void {
+		// Only process if this is a gatherpress_event post.
+		if ( 'gatherpress_event' !== get_post_type( $object_id ) ) {
+			return;
+		}
+
+		// Verify the taxonomy is registered with gatherpress_event.
+		$taxonomy_object = get_taxonomy( $taxonomy );
+		if ( ! $taxonomy_object || ! in_array( 'gatherpress_event', $taxonomy_object->object_type, true ) ) {
+			return;
+		}
+
+		// Clear the taxonomy-specific term cache.
+		delete_transient( 'gatherpress_magic_menu_terms_' . $taxonomy );
+	}
+}
+
+/**
+ * Initialize the plugin.
+ *
+ * @since 0.1.0
+ * @return GatherPress_Magic_Menu The plugin instance.
+ */
+function gatherpress_magic_menu(): GatherPress_Magic_Menu {
+	return GatherPress_Magic_Menu::instance();
+}
+
+// Kickoff the plugin.
+gatherpress_magic_menu();]]></content>
+  </file>
+  <file path="src/block.json">
+    <description>This file contains metadata about the block including its name, title, category, icon, and other properties. The icon is a WordPress Dashicon name (e.g., "admin-post", "format-aside", "admin-page"). Do not use any icon that's not in the list under any circustamce. These are the only slugs available:
+	
+	menu menu-alt menu-alt2 menu-alt3 admin-site admin-site-alt admin-site-alt2 admin-site-alt3 dashboard admin-post admin-media admin-links admin-page admin-comments admin-appearance admin-plugins plugins-checked admin-users admin-tools admin-settings admin-network admin-home admin-generic admin-collapse filter admin-customizer admin-multisite welcome-write-blog welcome-add-page welcome-view-site welcome-widgets-menus welcome-comments welcome-learn-more format-aside format-image format-gallery format-video format-status format-quote format-chat format-audio camera camera-alt images-alt images-alt2 video-alt video-alt2 video-alt3 media-archive media-audio media-code media-default media-document media-interactive media-spreadsheet media-text media-video playlist-audio playlist-video controls-play controls-pause controls-forward controls-skipforward controls-back controls-skipback controls-repeat controls-volumeon controls-volumeoff image-crop image-rotate image-rotate-left image-rotate-right image-flip-vertical image-flip-horizontal image-filter undo redo database-add database database-export database-import database-remove database-view align-full-width align-pull-left align-pull-right align-wide block-default button cloud-saved cloud-upload columns cover-image ellipsis embed-audio embed-generic embed-photo embed-post embed-video exit heading html info-outline insert insert-after insert-before remove saved shortcode table-col-after table-col-before table-col-delete table-row-after table-row-before table-row-delete editor-bold editor-italic editor-ul editor-ol editor-ol-rtl editor-quote editor-alignleft editor-aligncenter editor-alignright editor-insertmore editor-spellcheck editor-expand editor-contract editor-kitchensink editor-underline editor-justify editor-textcolor editor-paste-word editor-paste-text editor-removeformatting editor-video editor-customchar editor-outdent editor-indent editor-help editor-strikethrough editor-unlink editor-rtl editor-ltr editor-break editor-code editor-paragraph editor-table align-left align-right align-center align-none lock unlock calendar calendar-alt visibility hidden post-status edit trash sticky external arrow-up arrow-down arrow-right arrow-left arrow-up-alt arrow-down-alt arrow-right-alt arrow-left-alt arrow-up-alt2 arrow-down-alt2 arrow-right-alt2 arrow-left-alt2 sort leftright randomize list-view excerpt-view grid-view move share share-alt share-alt2 rss email email-alt email-alt2 networking amazon facebook facebook-alt google instagram linkedin pinterest podio reddit spotify twitch twitter twitter-alt whatsapp xing youtube hammer art migrate performance universal-access universal-access-alt tickets nametag clipboard heart megaphone schedule tide rest-api code-standards buddicons-activity buddicons-bbpress-logo buddicons-buddypress-logo buddicons-community buddicons-forums buddicons-friends buddicons-groups buddicons-pm buddicons-replies buddicons-topics buddicons-tracking wordpress wordpress-alt pressthis update update-alt screenoptions info cart feedback cloud translation tag category archive tagcloud text bell yes yes-alt no no-alt plus plus-alt plus-alt2 minus dismiss marker star-filled star-half star-empty flag warning location location-alt vault shield shield-alt sos search slides text-page analytics chart-pie chart-bar chart-line chart-area groups businessman businesswoman businessperson id id-alt products awards forms testimonials portfolio book book-alt download upload backup clock lightbulb microphone desktop laptop tablet smartphone phone index-card carrot building store album palmtree tickets-alt money money-alt smiley thumbs-up thumbs-down layout paperclip color-picker edit-large edit-page airplane bank beer calculator car coffee drumstick food fullscreen-alt fullscreen-exit-alt games hourglass open-folder pdf pets printer privacy superhero superhero-alt</description>
+    <content><![CDATA[{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "telex/block-gatherpress-magic-menu",
+	"version": "0.1.0",
+	"title": "GatherPress Magic Menu",
+	"category": "widgets",
+	"icon": "calendar-alt",
+	"description": "A navigation link that dynamically links to the GatherPress events archive",
+	"keywords": ["navigation", "gatherpress", "events", "menu", "link"],
+	"parent": ["core/navigation"],
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"gatherpressTaxonomy": {
+			"type": "string",
+			"default": ""
+		},
+		"showEventCount": {
+			"type": "boolean",
+			"default": false
+		},
+		"showTermEventCount": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"example": {
+		"attributes": {
+			"label": "View All Events"
+		}
+	},
+	"styles": [
+		{
+			"name": "default",
+			"label": "Default",
+			"isDefault": true
+		},
+		{
+			"name": "badge",
+			"label": "Badge"
+		},
+		{
+			"name": "starburst",
+			"label": "Starburst"
+		}
+	],
+	"supports": {
+		"html": false,
+		"reusable": true,
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true,
+			"__experimentalFontFamily": true,
+			"__experimentalFontWeight": true,
+			"__experimentalFontStyle": true,
+			"__experimentalTextTransform": true,
+			"__experimentalTextDecoration": true,
+			"__experimentalLetterSpacing": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
+		},
+		"color": {
+			"text": true,
+			"background": true,
+			"gradients": true,
+			"link": true,
+			"__experimentalDefaultControls": {
+				"text": true,
+				"background": true
+			}
+		}
+	},
+	"textdomain": "gatherpress-magic-menu",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}]]></content>
+  </file>
+  <file path="src/index.js">
+    <description>This file registers the block, specifies the edit and save functions, and loads the block's metadata</description>
+    <content><![CDATA[/**
+ * Registers a new block provided a unique name and an object defining its behavior.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
+ */
+import { registerBlockType } from '@wordpress/blocks';
+import { addFilter } from '@wordpress/hooks';
+
+/**
+ * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+ * All files containing `style` keyword are bundled together. The code used
+ * gets applied both to the front of your site and to the editor.
+ *
+ * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ */
+import './style.scss';
+
+/**
+ * Internal dependencies
+ */
+import Edit from './edit';
+import metadata from './block.json';
+
+/**
+ * Make the Magic Menu Block available to Navigation blocks.
+ */
+addFilter(
+	'blocks.registerBlockType',
+	'telex-block-gatherpress-magic-menu/add-taxonomy-attribute',
+	( settings, name ) => {
+		if ( name !== 'core/navigation' ) {
+			return settings;
+		}
+
+		return {
+			...settings,
+          	allowedBlocks: [
+				...( settings.allowedBlocks ?? [] ),
+				'telex-block-gatherpress-magic-menu',
+			],
+		};
+	}
+);
+
+/**
+ * Every block starts by registering a new block type definition.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
+ */
+registerBlockType( metadata.name, {
+	/**
+	 * @see ./edit.js
+	 */
+	edit: Edit,
+} );]]></content>
+  </file>
+  <file path="src/edit.js">
+    <description>This file contains the edit function for the block which is responsible for rendering the block in the editor.</description>
+    <content><![CDATA[/**
+ * Retrieves the translation of text.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
+ */
+import { __ } from '@wordpress/i18n';
+
+/**
+ * React hook that is used to mark the block wrapper element.
+ * It provides all the necessary props like the class name.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
+ */
+import { useBlockProps, RichText, InspectorControls } from '@wordpress/block-editor';
+import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
+import { store as coreStore } from '@wordpress/core-data';
+
+/**
+ * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+ * Those files can contain any CSS code that gets applied to the editor.
+ *
+ * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ */
+import './editor.scss';
+
+/**
+ * The edit function describes the structure of your block in the context of the
+ * editor. This represents what the editor will render when the block is used.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
+ *
+ * @param {Object}   props               Component props.
+ * @param {Object}   props.attributes    Block attributes.
+ * @param {string}   props.attributes.label The label text for the navigation link.
+ * @param {string}   props.attributes.gatherpressTaxonomy The selected taxonomy slug.
+ * @param {boolean}  props.attributes.showEventCount Whether to show event count.
+ * @param {boolean}  props.attributes.showTermEventCount Whether to show event count for term links.
+ * @param {string}   props.className     The block's className (includes block style).
+ * @param {Function} props.setAttributes Function to update block attributes.
+ * @return {Element} Element to render.
+ */
+export default function Edit( { attributes, setAttributes, className } ) {
+	const { label, gatherpressTaxonomy, showEventCount, showTermEventCount } = attributes;
+
+	/**
+	 * Fetch taxonomies registered with the gatherpress_event post type.
+	 */
+	const taxonomies = useSelect( ( select ) => {
+		const { getTaxonomies } = select( coreStore );
+		const allTaxonomies = getTaxonomies( { per_page: -1 } ) || [];
+		
+		// Filter to only include taxonomies associated with gatherpress_event
+		return allTaxonomies.filter( ( taxonomy ) => {
+			return taxonomy.types && taxonomy.types.includes( 'gatherpress_event' );
+		} );
+	}, [] );
+
+	/**
+	 * Fetch the gatherpress_event post type to get its plural label.
+	 */
+	const postType = useSelect( ( select ) => {
+		const { getPostType } = select( coreStore );
+		return getPostType( 'gatherpress_event' );
+	}, [] );
+
+	/**
+	 * Get the fallback label from post type plural label.
+	 */
+	const getFallbackLabel = () => {
+		if ( postType && postType.labels && postType.labels.name ) {
+			return postType.labels.name;
+		}
+		return __( 'Events', 'gatherpress-magic-menu' );
+	};
+
+	/**
+	 * Get the effective label (user-provided or fallback).
+	 */
+	const getEffectiveLabel = () => {
+		return label || getFallbackLabel();
+	};
+
+	/**
+	 * Handles changes to the label text.
+	 *
+	 * @param {string} newLabel The new label text.
+	 * @return {void}
+	 */
+	const onChangeLabel = ( newLabel ) => {
+		setAttributes( { label: newLabel } );
+	};
+
+	/**
+	 * Handles changes to the taxonomy selection.
+	 *
+	 * @param {string} newTaxonomy The selected taxonomy slug.
+	 * @return {void}
+	 */
+	const onChangeTaxonomy = ( newTaxonomy ) => {
+		setAttributes( { gatherpressTaxonomy: newTaxonomy } );
+	};
+
+	/**
+	 * Handles changes to the event count toggle.
+	 *
+	 * @param {boolean} newValue The new toggle value.
+	 * @return {void}
+	 */
+	const onChangeShowEventCount = ( newValue ) => {
+		setAttributes( { showEventCount: newValue } );
+	};
+
+	/**
+	 * Handles changes to the term event count toggle.
+	 *
+	 * @param {boolean} newValue The new toggle value.
+	 * @return {void}
+	 */
+	const onChangeShowTermEventCount = ( newValue ) => {
+		setAttributes( { showTermEventCount: newValue } );
+	};
+
+	/**
+	 * Prepare taxonomy options for the SelectControl.
+	 */
+	const taxonomyOptions = [
+		{ label: __( 'All Events', 'gatherpress-magic-menu' ), value: '' },
+		...( taxonomies || [] ).map( ( taxonomy ) => ( {
+			label: taxonomy.name || taxonomy.slug,
+			value: taxonomy.slug,
+		} ) ),
+	];
+
+	/**
+	 * Build the display label with optional count.
+	 */
+	const buildDisplayLabel = () => {
+		let displayLabel = getEffectiveLabel();
+
+		if ( showEventCount ) {
+			displayLabel += ' ';
+		}
+
+		return displayLabel;
+	};
+
+	const blockProps = useBlockProps( {
+		className: 'wp-block-navigation-item wp-block-navigation-link',
+	} );
+
+	return (
+		<>
+			<InspectorControls>
+				<PanelBody
+					title={ __( 'GatherPress Settings', 'gatherpress-magic-menu' ) }
+					initialOpen={ true }
+				>
+					<SelectControl
+						label={ __( 'Filter by Taxonomy', 'gatherpress-magic-menu' ) }
+						value={ gatherpressTaxonomy }
+						options={ taxonomyOptions }
+						onChange={ onChangeTaxonomy }
+						help={ __(
+							'Select a taxonomy to filter events, or leave as "All Events" for the main archive.',
+							'gatherpress-magic-menu'
+						) }
+					/>
+					<ToggleControl
+						label={ __( 'Show Event Count', 'gatherpress-magic-menu' ) }
+						checked={ showEventCount }
+						onChange={ onChangeShowEventCount }
+						help={ __(
+							'Display the number of upcoming events next to the main archive label.',
+							'gatherpress-magic-menu'
+						) }
+					/>
+					{ gatherpressTaxonomy && (
+						<ToggleControl
+							label={ __( 'Show Term Event Count', 'gatherpress-magic-menu' ) }
+							checked={ showTermEventCount }
+							onChange={ onChangeShowTermEventCount }
+							help={ __(
+								'Display the number of upcoming events next to each term link.',
+								'gatherpress-magic-menu'
+							) }
+						/>
+					) }
+				</PanelBody>
+			</InspectorControls>
+			<li { ...blockProps }>
+				<a
+					className="wp-block-navigation-item__content"
+					href="#gatherpress-events-archive"
+					aria-label={ __(
+						'Link to GatherPress Events Archive',
+						'gatherpress-magic-menu'
+					) }
+				>
+					<RichText
+						identifier="label"
+						className="wp-block-navigation-item__label"
+						value={ buildDisplayLabel() }
+						onChange={ onChangeLabel }
+						placeholder={ getFallbackLabel() }
+						withoutInteractiveFormatting
+						allowedFormats={ [
+							'core/bold',
+							'core/italic',
+							'core/image',
+							'core/strikethrough',
+						] }
+						aria-label={ __(
+							'Navigation link text',
+							'gatherpress-magic-menu'
+						) }
+					/>
+					{ showEventCount && (
+						<span className={ `gatherpress-magic-menu__count ${ className || '' }` }>
+							n
+						</span>
+					) }
+				</a>
+			</li>
+		</>
+	);
+}]]></content>
+  </file>
+  <file path="src/save.js">
+    <description>This file contains the save function for the block which is responsible for creating the static result of rendering the block on the client to display the saved result on the front end.</description>
+    <content><![CDATA[
+	]]></content>
+  </file>
+  <file path="src/style.scss">
+    <description>This file contains styles for the block in the front end.</description>
+    <content><![CDATA[/**
+ * Frontend styles for GatherPress Magic Menu block.
+ *
+ * This file inherits most styling from the parent navigation block
+ * to maintain visual consistency with native navigation links.
+ *
+ * BEM Structure:
+ * - Block: .gatherpress-magic-menu
+ * - Element: .gatherpress-magic-menu__count
+ * - Modifier: .gatherpress-magic-menu--disabled
+ *
+ * @package GatherPressMagicMenu
+ */
+
+/**
+ * Block: GatherPress Magic Menu
+ * Base styles for the navigation block integration.
+ */
+.wp-block-telex-block-gatherpress-magic-menu {
+	/* Inherits styles from .wp-block-navigation-item */
+	/* Add custom frontend styles here if needed */
+}
+
+/**
+ * Modifier: Disabled State
+ * Applied when there are no upcoming events.
+ */
+.gatherpress-magic-menu--disabled {
+	a[aria-disabled="true"] {
+		opacity: 0.5;
+		cursor: not-allowed;
+		pointer-events: none;
+		text-decoration: none;
+
+		&:hover,
+		&:focus {
+			text-decoration: none;
+			color: inherit;
+		}
+	}
+}
+
+/**
+ * Element: Event Count
+ * Base styles for the event count display.
+ */
+.gatherpress-magic-menu__count {
+	margin-left: 0.25em;
+
+	&::before {
+		content: " (";
+	}
+
+	&::after {
+		content: ")";
+	}
+}
+
+/**
+ * Block Style: Default
+ * Minimal styling with parentheses and spacing.
+ */
+.is-style-default {
+	.gatherpress-magic-menu__count {
+		margin-left: 0.25em;
+
+		&::before {
+			content: " (";
+		}
+
+		&::after {
+			content: ")";
+		}
+	}
+}
+
+/**
+ * Block Style: Badge
+ * A subtle notification-style indicator positioned at the top right.
+ */
+.is-style-badge {
+	.wp-block-navigation-item__content {
+		position: relative;
+	}
+
+	.gatherpress-magic-menu__count {
+		position: absolute;
+		top: -0.5em;
+		right: -0.75em;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.5em;
+		height: 1.5em;
+		padding: 0.2em 0.4em;
+		margin-left: 0;
+		border-radius: 999px;
+		background: #4a90e2;
+		color: #ffffff;
+		font-weight: 600;
+		font-size: 0.65em;
+		line-height: 1;
+		box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+		transition: all 0.2s ease;
+
+		&::before,
+		&::after {
+			content: none;
+		}
+	}
+
+	a:hover,
+	a:focus {
+		.gatherpress-magic-menu__count {
+			background: #357abd;
+			box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
+		}
+	}
+}
+
+/**
+ * Block Style: Starburst
+ * An eye-catching, energetic design with rotation and vibrant styling.
+ */
+.is-style-starburst {
+	.gatherpress-magic-menu__count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.8em;
+		height: 1.8em;
+		padding: 0.25em;
+		margin-left: 0.5em;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #d63638 0%, #f0134d 100%);
+		color: #ffffff;
+		font-weight: 700;
+		font-size: 0.7em;
+		line-height: 1;
+		vertical-align: middle;
+		box-shadow: 
+			0 0 0 2px #ffffff,
+			0 0 0 3px #d63638,
+			0 2px 8px rgba(0, 0, 0, 0.15);
+		transform: rotate(-5deg);
+		transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+		&::before,
+		&::after {
+			content: none;
+		}
+	}
+
+	a:hover,
+	a:focus {
+		.gatherpress-magic-menu__count {
+			transform: rotate(5deg) scale(1.15);
+			background: linear-gradient(135deg, #b32d2e 0%, #d40e40 100%);
+			box-shadow: 
+				0 0 0 2px #ffffff,
+				0 0 0 3px #d63638,
+				0 4px 12px rgba(0, 0, 0, 0.25),
+				0 0 20px rgba(214, 54, 56, 0.4);
+		}
+	}
+}
+
+/**
+ * Submenu Spacing
+ * Ensure proper spacing for counts in submenus.
+ */
+.wp-block-navigation-submenu {
+	.gatherpress-magic-menu__count {
+		margin-left: auto;
+		margin-right: 0;
+	}
+}
+
+/**
+ * Disabled State Adjustments
+ * Remove effects when the link is disabled.
+ */
+.gatherpress-magic-menu--disabled {
+	.is-style-badge,
+	.is-style-starburst {
+		.gatherpress-magic-menu__count {
+			opacity: 0.5;
+			box-shadow: none;
+			transform: none;
+		}
+	}
+
+	.gatherpress-magic-menu__count {
+		opacity: 0.5;
+	}
+}]]></content>
+  </file>
+  <file path="src/editor.scss">
+    <description>This file contains styles for the block in the editor.</description>
+    <content><![CDATA[/**
+ * Editor-specific styles for GatherPress Magic Menu block.
+ *
+ * These styles ensure the block appears consistent with native
+ * navigation links in the block editor.
+ *
+ * BEM Structure:
+ * - Block: .gatherpress-magic-menu
+ * - Element: .gatherpress-magic-menu__label
+ * - Element: .gatherpress-magic-menu__count
+ *
+ * @package GatherPressMagicMenu
+ */
+
+/**
+ * Block: GatherPress Magic Menu (Editor)
+ * Base editor styles for the navigation block integration.
+ */
+.wp-block-telex-block-gatherpress-magic-menu {
+	/* Editor-specific styles if needed */
+	/* Most styling inherited from .wp-block-navigation-item */
+
+	/**
+	 * Element: Label
+	 * RichText component styling for label editing.
+	 */
+	.wp-block-navigation-item__label {
+		/* Inherits from parent navigation styles */
+	}
+
+	/**
+	 * Element: Count (Editor Preview)
+	 * Styling for the event count preview in the editor.
+	 */
+	.gatherpress-magic-menu__count {
+		/* Inherits from frontend styles */
+	}
+}]]></content>
+  </file>
+  <file path="src/view.js">
+    <description>This file contains the view function for the block which is responsible for rendering interactive behaviors of the block on the front end. Ideally using the WordPress interactivity API.</description>
+    <content><![CDATA[/**
+ * Frontend JavaScript for GatherPress Magic Menu block.
+ *
+ * Handles click prevention for disabled navigation links
+ * when there are no upcoming events.
+ *
+ * Uses BEM class naming: .gatherpress-magic-menu--disabled
+ *
+ * @package GatherPressMagicMenu
+ */
+
+( function() {
+	'use strict';
+
+	/**
+	 * Prevents navigation when clicking on disabled links.
+	 *
+	 * @param {Event} event The click event.
+	 */
+	function handleDisabledClick( event ) {
+		const link = event.currentTarget;
+		
+		if ( link.getAttribute( 'aria-disabled' ) === 'true' ) {
+			event.preventDefault();
+			event.stopPropagation();
+			return false;
+		}
+	}
+
+	/**
+	 * Initialize event listeners for disabled links.
+	 * Uses BEM modifier class: .gatherpress-magic-menu--disabled
+	 */
+	function init() {
+		// Find all navigation links with aria-disabled="true" within disabled blocks.
+		const disabledLinks = document.querySelectorAll(
+			'.gatherpress-magic-menu--disabled a[aria-disabled="true"]'
+		);
+
+		// Attach click handlers to prevent navigation.
+		disabledLinks.forEach( function( link ) {
+			link.addEventListener( 'click', handleDisabledClick, true );
+		} );
+	}
+
+	// Initialize when DOM is ready.
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', init );
+	} else {
+		init();
+	}
+} )();]]></content>
+  </file>
+  <file path="src/render.php">
+    <description>This file contains the render callback function for the block, which is responsible for rendering the block content on the front end. A render function should exist only if the block is dynamic.</description>
+    <content><![CDATA[<?php
+/**
+ * Render callback for the GatherPress Magic Menu block.
+ *
+ * This file is responsible for generating the frontend HTML output
+ * for the block, creating a navigation submenu that contains links
+ * to each term in the selected GatherPress taxonomy.
+ *
+ * Uses BEM naming convention:
+ * - Block: .gatherpress-magic-menu
+ * - Element: .gatherpress-magic-menu__count
+ * - Modifier: .gatherpress-magic-menu--disabled
+ *
+ * @package GatherPressMagicMenu
+ * @since 0.1.0
+ *
+ * @param array    $attributes Block attributes.
+ * @param string   $content    Block default content.
+ * @param WP_Block $block      Block instance.
+ *
+ * @see https://developer.wordpress.org/reference/functions/get_post_type_archive_link/
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
+	/**
+	 * Singleton class for rendering the block.
+	 *
+	 * @since 0.1.0
+	 */
+	final class GatherPress_Magic_Menu_Renderer {
+		/**
+		 * The single instance of the class.
+		 *
+		 * @since 0.1.0
+		 * @var GatherPress_Magic_Menu_Renderer|null
+		 */
+		private static $instance = null;
+
+		/**
+		 * Transient expiry time in seconds (7 days).
+		 *
+		 * @since 0.1.0
+		 * @var int
+		 */
+		const CACHE_EXPIRY = 604800;
+
+		/**
+		 * Main renderer instance.
+		 *
+		 * Ensures only one instance of the renderer is loaded or can be loaded.
+		 *
+		 * @since 0.1.0
+		 * @return GatherPress_Magic_Menu_Renderer The single instance.
+		 */
+		public static function instance(): GatherPress_Magic_Menu_Renderer {
+			if ( is_null( self::$instance ) ) {
+				self::$instance = new self();
+			}
+			return self::$instance;
+		}
+
+		/**
+		 * Private constructor to prevent direct instantiation.
+		 *
+		 * @since 0.1.0
+		 */
+		private function __construct() {}
+
+		/**
+		 * Renders the block output.
+		 *
+		 * Main entry point that orchestrates the rendering logic.
+		 *
+		 * @since 0.1.0
+		 * @param array    $attributes Block attributes.
+		 * @param string   $content    Block default content.
+		 * @param WP_Block $block      Block instance.
+		 * @return string The rendered block HTML.
+		 */
+		public function render( array $attributes, string $content, WP_Block $block ): string {
+			$label = $this->get_label( $attributes );
+			$taxonomy_slug = $this->get_taxonomy_slug( $attributes );
+			$show_count = $this->get_show_event_count( $attributes );
+			$show_term_count = $this->get_show_term_event_count( $attributes );
+			$archive_url = $this->get_events_archive_url();
+			$wrapper_attributes = get_block_wrapper_attributes();
+
+			$upcoming_event_ids = $this->get_upcoming_events();
+			$total_count = count( $upcoming_event_ids );
+
+			if ( empty( $upcoming_event_ids ) ) {
+				return $this->render_simple_link( $label, $archive_url, true, 0, $show_count, $wrapper_attributes );
+			}
+
+			if ( empty( $taxonomy_slug ) ) {
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes );
+			}
+
+			$terms_data = $this->get_terms_with_event_counts( $taxonomy_slug, $upcoming_event_ids );
+
+			if ( empty( $terms_data ) ) {
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes );
+			}
+
+			return $this->render_submenu( $label, $archive_url, $terms_data, $taxonomy_slug, $total_count, $show_count, $show_term_count, $wrapper_attributes );
+		}
+
+		/**
+		 * Gets the fallback label from the post type.
+		 *
+		 * @since 0.1.0
+		 * @return string The fallback label from post type plural label.
+		 */
+		private function get_fallback_label(): string {
+			$post_type_object = get_post_type_object( 'gatherpress_event' );
+
+			if ( $post_type_object && isset( $post_type_object->labels->name ) ) {
+				return $post_type_object->labels->name;
+			}
+
+			return __( 'Events', 'gatherpress-magic-menu' );
+		}
+
+		/**
+		 * Extracts the label from attributes with fallback.
+		 *
+		 * @since 0.1.0
+		 * @param array $attributes Block attributes.
+		 * @return string The label text.
+		 */
+		private function get_label( array $attributes ): string {
+			if ( isset( $attributes['label'] ) && ! empty( $attributes['label'] ) ) {
+				return $attributes['label'];
+			}
+
+			return $this->get_fallback_label();
+		}
+
+		/**
+		 * Extracts the taxonomy slug from attributes.
+		 *
+		 * @since 0.1.0
+		 * @param array $attributes Block attributes.
+		 * @return string The taxonomy slug.
+		 */
+		private function get_taxonomy_slug( array $attributes ): string {
+			return isset( $attributes['gatherpressTaxonomy'] ) && ! empty( $attributes['gatherpressTaxonomy'] )
+				? $attributes['gatherpressTaxonomy']
+				: '';
+		}
+
+		/**
+		 * Extracts the show event count setting from attributes.
+		 *
+		 * @since 0.1.0
+		 * @param array $attributes Block attributes.
+		 * @return bool Whether to show event count.
+		 */
+		private function get_show_event_count( array $attributes ): bool {
+			return isset( $attributes['showEventCount'] ) && $attributes['showEventCount'];
+		}
+
+		/**
+		 * Extracts the show term event count setting from attributes.
+		 *
+		 * @since 0.1.0
+		 * @param array $attributes Block attributes.
+		 * @return bool Whether to show term event count.
+		 */
+		private function get_show_term_event_count( array $attributes ): bool {
+			return isset( $attributes['showTermEventCount'] ) && $attributes['showTermEventCount'];
+		}
+
+		/**
+		 * Retrieves all upcoming GatherPress event IDs with caching.
+		 *
+		 * Stores only the post IDs to minimize transient size.
+		 *
+		 * @since 0.1.0
+		 * @return array Array of event post IDs.
+		 */
+		private function get_upcoming_events(): array {
+			$cache_key = 'gatherpress_magic_menu_upcoming_events';
+			$cached_events = get_transient( $cache_key );
+
+			if ( false !== $cached_events ) {
+				return $cached_events;
+			}
+
+			$events = get_posts(
+				array(
+					'post_type'               => 'gatherpress_event',
+					'post_status'             => 'publish',
+					'gatherpress_event_query' => 'upcoming',
+					'order'                   => 'desc',
+					'posts_per_page'          => -1,
+					'fields'                  => 'ids',
+					'no_found_rows'           => true,
+					'update_post_term_cache'  => false,
+					'update_menu_item_cache'  => false,
+					'suppress_filters'        => false,
+				)
+			);
+
+			set_transient( $cache_key, $events, self::CACHE_EXPIRY );
+
+			return $events;
+		}
+
+		/**
+		 * Gets terms with event counts for a taxonomy.
+		 *
+		 * Optimized to store only essential data:
+		 * - term_id: For retrieving the full term object when needed
+		 * - name: For display
+		 * - count: Pre-calculated event count
+		 *
+		 * @since 0.1.0
+		 * @param string $taxonomy_slug    The taxonomy slug.
+		 * @param array  $upcoming_event_ids Array of event post IDs.
+		 * @return array Array of associative arrays with 'term_id', 'name', and 'count' keys.
+		 */
+		private function get_terms_with_event_counts( string $taxonomy_slug, array $upcoming_event_ids ): array {
+			$cache_key = 'gatherpress_magic_menu_terms_' . $taxonomy_slug;
+			$cached_terms = get_transient( $cache_key );
+
+			if ( false !== $cached_terms && is_array( $cached_terms ) ) {
+				return $cached_terms;
+			}
+
+			$term_ids = $this->collect_term_ids_from_events( $taxonomy_slug, $upcoming_event_ids );
+
+			if ( empty( $term_ids ) ) {
+				$empty_array = array();
+				set_transient( $cache_key, $empty_array, self::CACHE_EXPIRY );
+				return $empty_array;
+			}
+
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomy_slug,
+					'include'    => $term_ids,
+					'hide_empty' => false,
+					'orderby'    => 'name',
+					'order'      => 'ASC',
+				)
+			);
+
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				$empty_array = array();
+				set_transient( $cache_key, $empty_array, self::CACHE_EXPIRY );
+				return $empty_array;
+			}
+
+			// Build minimal data structure with pre-calculated counts.
+			$terms_data = array();
+			foreach ( $terms as $term ) {
+				$count = $this->count_events_for_term( $term->term_id, $taxonomy_slug, $upcoming_event_ids );
+				$terms_data[] = array(
+					'term_id' => $term->term_id,
+					'name'    => $term->name,
+					'count'   => $count,
+				);
+			}
+
+			set_transient( $cache_key, $terms_data, self::CACHE_EXPIRY );
+
+			return $terms_data;
+		}
+
+		/**
+		 * Collects unique term IDs from events.
+		 *
+		 * @since 0.1.0
+		 * @param string $taxonomy_slug    The taxonomy slug.
+		 * @param array  $upcoming_event_ids Array of event post IDs.
+		 * @return array Array of term IDs.
+		 */
+		private function collect_term_ids_from_events( string $taxonomy_slug, array $upcoming_event_ids ): array {
+			$term_ids_map = array();
+
+			foreach ( $upcoming_event_ids as $event_id ) {
+				$event_terms = wp_get_post_terms( $event_id, $taxonomy_slug, array( 'fields' => 'ids' ) );
+
+				if ( ! is_wp_error( $event_terms ) && ! empty( $event_terms ) ) {
+					foreach ( $event_terms as $term_id ) {
+						$term_ids_map[ $term_id ] = true;
+					}
+				}
+			}
+
+			return array_keys( $term_ids_map );
+		}
+
+		/**
+		 * Counts events for a specific term.
+		 *
+		 * @since 0.1.0
+		 * @param int    $term_id            The term ID.
+		 * @param string $taxonomy_slug      The taxonomy slug.
+		 * @param array  $upcoming_event_ids Array of event post IDs.
+		 * @return int The count of events for this term.
+		 */
+		private function count_events_for_term( int $term_id, string $taxonomy_slug, array $upcoming_event_ids ): int {
+			$count = 0;
+
+			foreach ( $upcoming_event_ids as $event_id ) {
+				$event_terms = wp_get_post_terms( $event_id, $taxonomy_slug, array( 'fields' => 'ids' ) );
+
+				if ( ! is_wp_error( $event_terms ) && in_array( $term_id, $event_terms, true ) ) {
+					$count++;
+				}
+			}
+
+			return $count;
+		}
+
+		/**
+		 * Formats a label with event count using BEM element class.
+		 *
+		 * Uses .gatherpress-magic-menu__count as the BEM element class.
+		 *
+		 * @since 0.1.0
+		 * @param string $label      The base label.
+		 * @param int    $count      The event count.
+		 * @param bool   $show_count Whether to show the count.
+		 * @return string The formatted label HTML.
+		 */
+		private function format_label_with_count( string $label, int $count, bool $show_count ): string {
+			if ( ! $show_count ) {
+				return esc_html( $label );
+			}
+
+			return sprintf(
+				'%s<span class="gatherpress-magic-menu__count">%d</span>',
+				esc_html( $label ),
+				(int) $count
+			);
+		}
+
+		/**
+		 * Renders a navigation submenu with term links.
+		 *
+		 * @since 0.1.0
+		 * @param string $label              The submenu label.
+		 * @param string $archive_url        The archive URL.
+		 * @param array  $terms_data         Array of term data with 'term_id', 'name', and 'count'.
+		 * @param string $taxonomy_slug      The taxonomy slug.
+		 * @param int    $total_count        Total count of upcoming events.
+		 * @param bool   $show_count         Whether to show event count for main archive.
+		 * @param bool   $show_term_count    Whether to show event count for term links.
+		 * @param string $wrapper_attributes Wrapper attributes from get_block_wrapper_attributes().
+		 * @return string The rendered submenu HTML.
+		 */
+		private function render_submenu( string $label, string $archive_url, array $terms_data, string $taxonomy_slug, int $total_count, bool $show_count, bool $show_term_count, string $wrapper_attributes ): string {
+			$formatted_label = $this->format_label_with_count( $label, $total_count, $show_count );
+			$submenu_block = $this->create_submenu_block( $formatted_label, $archive_url );
+
+			if ( ! $submenu_block ) {
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes );
+			}
+
+			// Ensure innerBlocks array exists
+			if ( ! isset( $submenu_block['innerBlocks'] ) ) {
+				$submenu_block['innerBlocks'] = array();
+			}
+
+			// Add term links
+			$submenu_block = $this->add_term_links_to_submenu( $submenu_block, $terms_data, $taxonomy_slug, $show_term_count );
+
+			$rendered = render_block( $submenu_block );
+			return $this->apply_wrapper_attributes( $rendered, $wrapper_attributes );
+		}
+
+		/**
+		 * Creates a submenu block structure.
+		 *
+		 * @since 0.1.0
+		 * @param string $label       The submenu label (may contain HTML).
+		 * @param string $archive_url The archive URL.
+		 * @return array|false The parsed submenu block or false on failure.
+		 */
+		private function create_submenu_block( string $label, string $archive_url ) {
+			$submenu_attrs = array(
+				'label' => $label,
+				'url'   => $archive_url,
+				'kind'  => 'post-type-archive',
+				'type'  => 'gatherpress_event',
+			);
+
+			$submenu_content = sprintf(
+				'<!-- wp:navigation-submenu %s --><!-- /wp:navigation-submenu -->',
+				wp_json_encode( $submenu_attrs )
+			);
+
+			$submenu_blocks = parse_blocks( $submenu_content );
+
+			return ( ! empty( $submenu_blocks ) && ! empty( $submenu_blocks[0] ) )
+				? $submenu_blocks[0]
+				: false;
+		}
+
+		/**
+		 * Adds term navigation links to a submenu block.
+		 *
+		 * Uses the minimal cached data (term_id, name, count) to build links.
+		 *
+		 * @since 0.1.0
+		 * @param array  $submenu_block  The submenu block structure.
+		 * @param array  $terms_data     Array of term data with 'term_id', 'name', and 'count'.
+		 * @param string $taxonomy_slug  The taxonomy slug.
+		 * @param bool   $show_count     Whether to show event count for term links.
+		 * @return array The modified submenu block.
+		 */
+		private function add_term_links_to_submenu( array $submenu_block, array $terms_data, string $taxonomy_slug, bool $show_count ): array {
+			foreach ( $terms_data as $term_info ) {
+				if ( ! is_array( $term_info ) || ! isset( $term_info['term_id'], $term_info['name'], $term_info['count'] ) ) {
+					continue;
+				}
+
+				$term_link = get_term_link( (int) $term_info['term_id'], $taxonomy_slug );
+
+				if ( is_wp_error( $term_link ) ) {
+					continue;
+				}
+
+				$term_label = $this->format_label_with_count(
+					$term_info['name'],
+					$term_info['count'],
+					$show_count
+				);
+
+				$submenu_block['innerBlocks'][] = array(
+					'blockName'    => 'core/navigation-link',
+					'attrs'        => array(
+						'label' => $term_label,
+						'url'   => $term_link,
+						'kind'  => 'taxonomy',
+						'type'  => $taxonomy_slug,
+					),
+					'innerBlocks'  => array(),
+					'innerHTML'    => '',
+					'innerContent' => array(),
+				);
+			}
+
+			return $submenu_block;
+		}
+
+		/**
+		 * Renders a simple navigation link pointing to the archive.
+		 *
+		 * This is used as a fallback when no taxonomy is selected or
+		 * when no terms with upcoming events are found.
+		 *
+		 * @since 0.1.0
+		 * @param string $label               The link label.
+		 * @param string $archive_url         The archive URL.
+		 * @param bool   $is_disabled         Whether the link should be disabled.
+		 * @param int    $event_count         The event count.
+		 * @param bool   $show_count          Whether to show event count.
+		 * @param string $wrapper_attributes  Wrapper attributes from get_block_wrapper_attributes().
+		 * @return string The rendered navigation link HTML.
+		 */
+		private function render_simple_link( string $label, string $archive_url, bool $is_disabled = false, int $event_count = 0, bool $show_count = false, string $wrapper_attributes = '' ): string {
+			$formatted_label = $this->format_label_with_count( $label, $event_count, $show_count );
+			$link_block = $this->create_link_block( $formatted_label, $archive_url );
+
+			if ( ! $link_block ) {
+				return $this->render_fallback_html( $formatted_label, $archive_url, $is_disabled, $wrapper_attributes );
+			}
+
+			$rendered = render_block( $link_block );
+
+			if ( $is_disabled ) {
+				$rendered = $this->add_disabled_attributes( $rendered );
+			}
+
+			return $this->apply_wrapper_attributes( $rendered, $wrapper_attributes );
+		}
+
+		/**
+		 * Creates a navigation link block structure.
+		 *
+		 * @since 0.1.0
+		 * @param string $label       The link label (may contain HTML).
+		 * @param string $archive_url The archive URL.
+		 * @return array|false The parsed link block or false on failure.
+		 */
+		private function create_link_block( string $label, string $archive_url ) {
+			$link_attrs = array(
+				'label' => $label,
+				'url'   => $archive_url,
+				'kind'  => 'post-type-archive',
+				'type'  => 'gatherpress_event',
+			);
+
+			$link_content = sprintf(
+				'<!-- wp:navigation-link %s /-->',
+				wp_json_encode( $link_attrs )
+			);
+
+			$link_blocks = parse_blocks( $link_content );
+
+			return ( ! empty( $link_blocks ) && ! empty( $link_blocks[0] ) )
+				? $link_blocks[0]
+				: false;
+		}
+
+		/**
+		 * Applies wrapper attributes to the rendered HTML.
+		 *
+		 * Uses the HTML Processor API to merge wrapper attributes
+		 * (including theme.json styles and block style classes) into
+		 * the rendered output.
+		 *
+		 * @since 0.1.0
+		 * @param string $html                The rendered HTML.
+		 * @param string $wrapper_attributes  Wrapper attributes from get_block_wrapper_attributes().
+		 * @return string The modified HTML with wrapper attributes applied.
+		 */
+		private function apply_wrapper_attributes( string $html, string $wrapper_attributes ): string {
+			if ( empty( $wrapper_attributes ) ) {
+				return $html;
+			}
+
+			$processor = new WP_HTML_Tag_Processor( $html );
+
+			if ( $processor->next_tag( array( 'tag_name' => 'li' ) ) ) {
+				// Parse wrapper attributes to extract class and style.
+				preg_match( '/class="([^"]*)"/', $wrapper_attributes, $class_matches );
+				preg_match( '/style="([^"]*)"/', $wrapper_attributes, $style_matches );
+
+				if ( ! empty( $class_matches[1] ) ) {
+					$wrapper_classes = explode( ' ', $class_matches[1] );
+					foreach ( $wrapper_classes as $class ) {
+						if ( ! empty( $class ) ) {
+							$processor->add_class( $class );
+						}
+					}
+				}
+
+				if ( ! empty( $style_matches[1] ) ) {
+					$existing_style = $processor->get_attribute( 'style' );
+					$new_style = $existing_style ? $existing_style . '; ' . $style_matches[1] : $style_matches[1];
+					$processor->set_attribute( 'style', $new_style );
+				}
+			}
+
+			return $processor->get_updated_html();
+		}
+
+		/**
+		 * Renders fallback HTML when block parsing fails.
+		 *
+		 * Uses BEM modifier class .gatherpress-magic-menu--disabled
+		 *
+		 * @since 0.1.0
+		 * @param string $label               The link label (may contain HTML).
+		 * @param string $archive_url         The archive URL.
+		 * @param bool   $is_disabled         Whether the link should be disabled.
+		 * @param string $wrapper_attributes  Wrapper attributes from get_block_wrapper_attributes().
+		 * @return string The rendered HTML.
+		 */
+		private function render_fallback_html( string $label, string $archive_url, bool $is_disabled, string $wrapper_attributes = '' ): string {
+			$disabled_attr = $is_disabled ? ' aria-disabled="true"' : '';
+			$disabled_class = $is_disabled ? ' gatherpress-magic-menu--disabled' : '';
+
+			return sprintf(
+				'<li %s class="wp-block-navigation-item wp-block-navigation-link%s"><a class="wp-block-navigation-item__content" href="%s"%s>%s</a></li>',
+				$wrapper_attributes,
+				esc_attr( $disabled_class ),
+				esc_url( $archive_url ),
+				$disabled_attr,
+				$label
+			);
+		}
+
+		/**
+		 * Adds disabled attributes to the rendered HTML using the HTML Processor API.
+		 *
+		 * Uses BEM modifier class .gatherpress-magic-menu--disabled
+		 *
+		 * @since 0.1.0
+		 * @param string $html The rendered HTML.
+		 * @return string The modified HTML with aria-disabled and class added.
+		 */
+		private function add_disabled_attributes( string $html ): string {
+			$html = $this->add_aria_disabled_to_link( $html );
+			$html = $this->add_disabled_class_to_list_item( $html );
+
+			return $html;
+		}
+
+		/**
+		 * Adds aria-disabled attribute to the anchor tag.
+		 *
+		 * @since 0.1.0
+		 * @param string $html The rendered HTML.
+		 * @return string The modified HTML.
+		 */
+		private function add_aria_disabled_to_link( string $html ): string {
+			$processor = new WP_HTML_Tag_Processor( $html );
+
+			if ( $processor->next_tag(
+				array(
+					'tag_name'   => 'a',
+					'class_name' => 'wp-block-navigation-item__content',
+				)
+			) ) {
+				$processor->set_attribute( 'aria-disabled', 'true' );
+			}
+
+			return $processor->get_updated_html();
+		}
+
+		/**
+		 * Adds disabled BEM modifier class to the list item.
+		 *
+		 * Uses .gatherpress-magic-menu--disabled as the BEM modifier.
+		 *
+		 * @since 0.1.0
+		 * @param string $html The rendered HTML.
+		 * @return string The modified HTML.
+		 */
+		private function add_disabled_class_to_list_item( string $html ): string {
+			$processor = new WP_HTML_Tag_Processor( $html );
+
+			if ( $processor->next_tag(
+				array(
+					'tag_name'   => 'li',
+					'class_name' => 'wp-block-navigation-item',
+				)
+			) ) {
+				$processor->add_class( 'gatherpress-magic-menu--disabled' );
+			}
+
+			return $processor->get_updated_html();
+		}
+
+		/**
+		 * Gets the archive URL for GatherPress events.
+		 *
+		 * Attempts to get the archive link for the gatherpress_event post type.
+		 * Falls back to home URL if the post type doesn't exist.
+		 *
+		 * @since 0.1.0
+		 * @return string The archive URL.
+		 */
+		private function get_events_archive_url(): string {
+			$post_type = 'gatherpress_event';
+
+			if ( post_type_exists( $post_type ) ) {
+				$archive_url = get_post_type_archive_link( $post_type );
+
+				if ( $archive_url ) {
+					return $archive_url;
+				}
+			}
+
+			return home_url( '/#gatherpress-events' );
+		}
+	}
+}
+
+// Initialize the renderer singleton.
+$renderer = GatherPress_Magic_Menu_Renderer::instance();
+
+// Render and output the block.
+echo $renderer->render( $attributes, $content, $block );]]></content>
+  </file>
+</artefact>
