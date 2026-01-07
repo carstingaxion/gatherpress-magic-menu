@@ -1,1 +1,40 @@
-
+/*!****************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/editor.scss ***!
+  \****************************************************************************************************************************************************************************************************************************************/
+/**
+ * Editor-specific styles for GatherPress Magic Menu block.
+ *
+ * These styles ensure the block appears consistent with native
+ * navigation links in the block editor.
+ *
+ * BEM Structure:
+ * - Block: .gatherpress-magic-menu
+ * - Element: .gatherpress-magic-menu__label
+ * - Element: .gatherpress-magic-menu__count
+ *
+ * @package GatherPressMagicMenu
+ */
+/**
+ * Block: GatherPress Magic Menu (Editor)
+ * Base editor styles for the navigation block integration.
+ */
+.wp-block-telex-block-gatherpress-magic-menu {
+  /* Editor-specific styles if needed */
+  /* Most styling inherited from .wp-block-navigation-item */
+  /**
+   * Element: Label
+   * RichText component styling for label editing.
+   */
+}
+.wp-block-telex-block-gatherpress-magic-menu .wp-block-navigation-item__label {
+  /* Inherits from parent navigation styles */
+}
+.wp-block-telex-block-gatherpress-magic-menu {
+  /**
+   * Element: Count (Editor Preview)
+   * Styling for the event count preview in the editor.
+   */
+}
+.wp-block-telex-block-gatherpress-magic-menu .gatherpress-magic-menu__count {
+  /* Inherits from frontend styles */
+}

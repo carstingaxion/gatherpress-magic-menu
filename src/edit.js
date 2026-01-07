@@ -15,6 +15,7 @@ import { useBlockProps, RichText, InspectorControls } from '@wordpress/block-edi
 import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
+import { useMemo } from '@wordpress/element';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -36,12 +37,25 @@ import './editor.scss';
  * @param {string}   props.attributes.gatherpressTaxonomy The selected taxonomy slug.
  * @param {boolean}  props.attributes.showEventCount Whether to show event count.
  * @param {boolean}  props.attributes.showTermEventCount Whether to show event count for term links.
+ * @param {Object}   props.context       Block context from parent blocks.
  * @param {string}   props.className     The block's className (includes block style).
  * @param {Function} props.setAttributes Function to update block attributes.
  * @return {Element} Element to render.
  */
-export default function Edit( { attributes, setAttributes, className } ) {
+export default function Edit( { attributes, context, setAttributes, className } ) {
 	const { label, gatherpressTaxonomy, showEventCount, showTermEventCount } = attributes;
+
+	/**
+	 * Extract colors from navigation context.
+	 * Main link uses textColor/backgroundColor
+	 * Overlay colors are for submenu dropdowns (not applicable to main link)
+	 */
+	const {
+		textColor,
+		customTextColor,
+		backgroundColor,
+		customBackgroundColor,
+	} = context;
 
 	/**
 	 * Fetch taxonomies registered with the gatherpress_event post type.
@@ -80,6 +94,47 @@ export default function Edit( { attributes, setAttributes, className } ) {
 	const getEffectiveLabel = () => {
 		return label || getFallbackLabel();
 	};
+
+	/**
+	 * Build inline styles from navigation context colors.
+	 * Only apply main link colors (not overlay colors).
+	 */
+	const linkStyles = useMemo( () => {
+		const styles = {};
+
+		// Apply text color from context
+		if ( customTextColor ) {
+			styles.color = customTextColor;
+		}
+
+		// Apply background color from context
+		if ( customBackgroundColor ) {
+			styles.backgroundColor = customBackgroundColor;
+		}
+
+		return Object.keys( styles ).length > 0 ? styles : undefined;
+	}, [ customTextColor, customBackgroundColor ] );
+
+	/**
+	 * Build class names from navigation context.
+	 */
+	const linkClasses = useMemo( () => {
+		const classes = [ 'wp-block-navigation-item__content' ];
+
+		// Add text color class if present
+		if ( textColor ) {
+			classes.push( `has-${ textColor }-color` );
+			classes.push( 'has-text-color' );
+		}
+
+		// Add background color class if present
+		if ( backgroundColor ) {
+			classes.push( `has-${ backgroundColor }-background-color` );
+			classes.push( 'has-background' );
+		}
+
+		return classes.join( ' ' );
+	}, [ textColor, backgroundColor ] );
 
 	/**
 	 * Handles changes to the label text.
@@ -190,7 +245,8 @@ export default function Edit( { attributes, setAttributes, className } ) {
 			</InspectorControls>
 			<li { ...blockProps }>
 				<a
-					className="wp-block-navigation-item__content"
+					className={ linkClasses }
+					style={ linkStyles }
 					href="#gatherpress-events-archive"
 					aria-label={ __(
 						'Link to GatherPress Events Archive',

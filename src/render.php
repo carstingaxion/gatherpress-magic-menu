@@ -93,20 +93,20 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 			$total_count = count( $upcoming_event_ids );
 
 			if ( empty( $upcoming_event_ids ) ) {
-				return $this->render_simple_link( $label, $archive_url, true, 0, $show_count, $wrapper_attributes );
+				return $this->render_simple_link( $label, $archive_url, true, 0, $show_count, $wrapper_attributes, $block );
 			}
 
 			if ( empty( $taxonomy_slug ) ) {
-				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes );
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block );
 			}
 
 			$terms_data = $this->get_terms_with_event_counts( $taxonomy_slug, $upcoming_event_ids );
 
 			if ( empty( $terms_data ) ) {
-				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes );
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block );
 			}
 
-			return $this->render_submenu( $label, $archive_url, $terms_data, $taxonomy_slug, $total_count, $show_count, $show_term_count, $wrapper_attributes );
+			return $this->render_submenu( $label, $archive_url, $terms_data, $taxonomy_slug, $total_count, $show_count, $show_term_count, $wrapper_attributes, $block );
 		}
 
 		/**
@@ -353,7 +353,71 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		}
 
 		/**
+		 * Extracts context values needed for rendering.
+		 *
+		 * Consolidates all context extraction in one place for better maintainability.
+		 * Includes overlay colors, submenu icon visibility, and inherited styles.
+		 *
+		 * @since 0.1.0
+		 * @param WP_Block $block Block instance.
+		 * @return array<string, mixed> Array with all context values.
+		 */
+		private function get_navigation_context( WP_Block $block ): array {
+			$context = $block->context;
+
+			return array(
+				// Overlay colors for submenu dropdowns
+				'overlayTextColor'             => isset( $context['overlayTextColor'] ) && is_string( $context['overlayTextColor'] ) ? $context['overlayTextColor'] : '',
+				'customOverlayTextColor'       => isset( $context['customOverlayTextColor'] ) && is_string( $context['customOverlayTextColor'] ) ? $context['customOverlayTextColor'] : '',
+				'overlayBackgroundColor'       => isset( $context['overlayBackgroundColor'] ) && is_string( $context['overlayBackgroundColor'] ) ? $context['overlayBackgroundColor'] : '',
+				'customOverlayBackgroundColor' => isset( $context['customOverlayBackgroundColor'] ) && is_string( $context['customOverlayBackgroundColor'] ) ? $context['customOverlayBackgroundColor'] : '',
+
+				// Submenu icon visibility and interaction
+				'showSubmenuIcon'              => isset( $context['showSubmenuIcon'] ) ? (bool) $context['showSubmenuIcon'] : true,
+				'openSubmenusOnClick'          => isset( $context['openSubmenusOnClick'] ) ? (bool) $context['openSubmenusOnClick'] : false,
+
+				// Complete style object from parent navigation
+				'style'                        => isset( $context['style'] ) && is_array( $context['style'] ) ? $context['style'] : array(),
+
+				// Font size from parent navigation
+				'fontSize'                     => isset( $context['fontSize'] ) && is_string( $context['fontSize'] ) ? $context['fontSize'] : '',
+				'customFontSize'               => isset( $context['customFontSize'] ) && is_string( $context['customFontSize'] ) ? $context['customFontSize'] : '',
+			);
+		}
+
+		/**
+		 * Builds interaction classes for submenu items.
+		 *
+		 * Mimics core/navigation-submenu's behavior for controlling
+		 * how submenus open (on click vs hover+click).
+		 *
+		 * @since 0.1.0
+		 * @param array<string, mixed> $nav_context Navigation context.
+		 * @return array<int, string> Array of CSS classes.
+		 */
+		private function get_submenu_interaction_classes( array $nav_context ): array {
+			$show_submenu_indicators = isset( $nav_context['showSubmenuIcon'] ) && $nav_context['showSubmenuIcon'];
+			$open_on_click           = isset( $nav_context['openSubmenusOnClick'] ) && $nav_context['openSubmenusOnClick'];
+			$open_on_hover_and_click = isset( $nav_context['openSubmenusOnClick'] ) && ! $nav_context['openSubmenusOnClick'] && $show_submenu_indicators;
+
+			$classes = array();
+
+			if ( $open_on_click ) {
+				$classes[] = 'open-on-click';
+			}
+
+			if ( $open_on_hover_and_click ) {
+				$classes[] = 'open-on-hover-click';
+			}
+
+			return $classes;
+		}
+
+		/**
 		 * Renders a navigation submenu with term links.
+		 *
+		 * Uses core's render_block_core_navigation_submenu approach by leveraging
+		 * the block rendering system with proper context inheritance.
 		 *
 		 * @since 0.1.0
 		 * @param string                     $label              The submenu label.
@@ -367,9 +431,10 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		 * @param WP_Block                   $block              Block instance.
 		 * @return string The rendered submenu HTML.
 		 */
-		private function render_submenu( string $label, string $archive_url, array $terms_data, string $taxonomy_slug, int $total_count, bool $show_count, bool $show_term_count, string $wrapper_attributes ): string {
+		private function render_submenu( string $label, string $archive_url, array $terms_data, string $taxonomy_slug, int $total_count, bool $show_count, bool $show_term_count, string $wrapper_attributes, WP_Block $block ): string {
 			$formatted_label = $this->format_label_with_count( $label, $total_count, $show_count );
-			$submenu_block = $this->create_submenu_block( $formatted_label, $archive_url );
+			$nav_context = $this->get_navigation_context( $block );
+			$submenu_block = $this->create_submenu_block( $formatted_label, $archive_url, $nav_context );
 
 			if ( ! is_array( $submenu_block ) ) {
 				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block );
@@ -381,27 +446,241 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 			}
 
 			// Add term links
-			$submenu_block = $this->add_term_links_to_submenu( $submenu_block, $terms_data, $taxonomy_slug, $show_term_count );
+			$submenu_block = $this->add_term_links_to_submenu( $submenu_block, $terms_data, $taxonomy_slug, $show_term_count, $nav_context );
 
-			$rendered = render_block( $submenu_block );
+			// Create a WP_Block instance to properly inherit context
+			$submenu_wp_block = new WP_Block( $submenu_block, array( 'postId' => get_the_ID() ) );
+
+			// Inherit parent navigation context
+			$submenu_wp_block->context = array_merge( $block->context, $submenu_wp_block->context );
+
+			// Apply core's color support to the submenu attributes (for the container)
+			$submenu_container_attributes = $this->apply_overlay_colors_to_container( $submenu_wp_block );
+
+			// Render using core's rendering system
+			$rendered = $submenu_wp_block->render();
+
+			// Apply container colors to the <ul> element
+			if ( ! empty( $submenu_container_attributes ) ) {
+				$rendered = $this->apply_container_attributes_to_ul( $rendered, $submenu_container_attributes );
+			}
+
+			// Apply interaction classes to the <li> element
+			$interaction_classes = $this->get_submenu_interaction_classes( $nav_context );
+			if ( ! empty( $interaction_classes ) ) {
+				$rendered = $this->apply_interaction_classes_to_li( $rendered, $interaction_classes );
+			}
+
 			return $this->apply_wrapper_attributes( $rendered, $wrapper_attributes );
 		}
 
 		/**
-		 * Creates a submenu block structure.
+		 * Applies interaction classes to the <li> element.
+		 *
+		 * Adds classes like 'open-on-click' and 'open-on-hover-click' to control
+		 * submenu interaction behavior.
 		 *
 		 * @since 0.1.0
-		 * @param string $label       The submenu label (may contain HTML).
-		 * @param string $archive_url The archive URL.
-		 * @return array|false The parsed submenu block or false on failure.
+		 * @param string               $html    The rendered HTML.
+		 * @param array<int, string>   $classes Array of classes to add.
+		 * @return string The modified HTML.
 		 */
-		private function create_submenu_block( string $label, string $archive_url ) {
+		private function apply_interaction_classes_to_li( string $html, array $classes ): string {
+			if ( empty( $classes ) ) {
+				return $html;
+			}
+
+			$processor = new WP_HTML_Tag_Processor( $html );
+
+			if ( $processor->next_tag(
+				array(
+					'tag_name'   => 'li',
+					'class_name' => 'wp-block-navigation-item',
+				)
+			) ) {
+				foreach ( $classes as $class ) {
+					if ( ! empty( $class ) ) {
+						$processor->add_class( $class );
+					}
+				}
+			}
+
+			return $processor->get_updated_html();
+		}
+
+		/**
+		 * Applies overlay colors to submenu container using core's color support.
+		 *
+		 * This mimics core/navigation-submenu's approach: it copies overlay colors
+		 * from context into the submenu attributes, then uses wp_apply_colors_support()
+		 * to generate the proper CSS classes and inline styles.
+		 *
+		 * @since 0.1.0
+		 * @param WP_Block $submenu_block The submenu block instance.
+		 * @return array<string, string> Array with 'class' and 'style' keys for the container.
+		 */
+		private function apply_overlay_colors_to_container( WP_Block $submenu_block ): array {
+			$attributes = $submenu_block->attributes;
+
+			// Copy overlay colors from context to attributes (like core does)
+			if ( array_key_exists( 'overlayTextColor', $submenu_block->context ) ) {
+				$attributes['textColor'] = $submenu_block->context['overlayTextColor'];
+			}
+			if ( array_key_exists( 'overlayBackgroundColor', $submenu_block->context ) ) {
+				$attributes['backgroundColor'] = $submenu_block->context['overlayBackgroundColor'];
+			}
+			if ( array_key_exists( 'customOverlayTextColor', $submenu_block->context ) ) {
+				if ( ! isset( $attributes['style'] ) ) {
+					$attributes['style'] = array();
+				}
+				if ( ! isset( $attributes['style']['color'] ) ) {
+					$attributes['style']['color'] = array();
+				}
+				$attributes['style']['color']['text'] = $submenu_block->context['customOverlayTextColor'];
+			}
+			if ( array_key_exists( 'customOverlayBackgroundColor', $submenu_block->context ) ) {
+				if ( ! isset( $attributes['style'] ) ) {
+					$attributes['style'] = array();
+				}
+				if ( ! isset( $attributes['style']['color'] ) ) {
+					$attributes['style']['color'] = array();
+				}
+				$attributes['style']['color']['background'] = $submenu_block->context['customOverlayBackgroundColor'];
+			}
+
+			// Temporarily enable color support to get wp_apply_colors_support to work
+			$submenu_block->block_type->supports['color'] = true;
+			$colors_support = wp_apply_colors_support( $submenu_block->block_type, $attributes );
+
+			$result = array(
+				'class' => '',
+				'style' => '',
+			);
+
+			if ( array_key_exists( 'class', $colors_support ) ) {
+				$result['class'] = $colors_support['class'];
+			}
+
+			if ( array_key_exists( 'style', $colors_support ) ) {
+				$result['style'] = $colors_support['style'];
+			}
+
+			return $result;
+		}
+
+		/**
+		 * Applies container attributes (class and style) to the <ul> element.
+		 *
+		 * Uses the HTML Processor API to add the color classes and inline styles
+		 * generated by wp_apply_colors_support() to the submenu container.
+		 *
+		 * @since 0.1.0
+		 * @param string               $html                    The rendered HTML.
+		 * @param array<string, string> $container_attributes   Array with 'class' and 'style' keys.
+		 * @return string The modified HTML.
+		 */
+		private function apply_container_attributes_to_ul( string $html, array $container_attributes ): string {
+			$processor = new WP_HTML_Tag_Processor( $html );
+
+			// Find the <ul> with class wp-block-navigation__submenu-container
+			if ( $processor->next_tag(
+				array(
+					'tag_name'   => 'ul',
+					'class_name' => 'wp-block-navigation__submenu-container',
+				)
+			) ) {
+				// Add color classes
+				if ( ! empty( $container_attributes['class'] ) ) {
+					$classes = explode( ' ', $container_attributes['class'] );
+					foreach ( $classes as $class ) {
+						if ( ! empty( $class ) ) {
+							$processor->add_class( $class );
+						}
+					}
+				}
+
+				// Add or merge inline styles
+				if ( ! empty( $container_attributes['style'] ) ) {
+					$existing_style = $processor->get_attribute( 'style' );
+					$new_style = $existing_style ? $existing_style . '; ' . $container_attributes['style'] : $container_attributes['style'];
+					$processor->set_attribute( 'style', $new_style );
+				}
+			}
+
+			return $processor->get_updated_html();
+		}
+
+		/**
+		 * Creates a submenu block structure with navigation context.
+		 *
+		 * Mimics core/navigation-submenu structure to ensure compatibility
+		 * with theme.json styles and core rendering functions.
+		 *
+		 * @since 0.1.0
+		 * @param string               $label        The submenu label (may contain HTML).
+		 * @param string               $archive_url  The archive URL.
+		 * @param array<string, mixed> $nav_context  Navigation context including colors, styles, and showSubmenuIcon.
+		 * @return array<string, mixed>|false The parsed submenu block or false on failure.
+		 */
+		private function create_submenu_block( string $label, string $archive_url, array $nav_context ) {
 			$submenu_attrs = array(
 				'label' => $label,
 				'url'   => $archive_url,
 				'kind'  => 'post-type-archive',
 				'type'  => 'gatherpress_event',
 			);
+
+			// Add showSubmenuIcon if false (true is default)
+			if ( isset( $nav_context['showSubmenuIcon'] ) && ! $nav_context['showSubmenuIcon'] ) {
+				$submenu_attrs['showSubmenuIcon'] = false;
+			}
+
+			// Add fontSize from context
+			if ( ! empty( $nav_context['fontSize'] ) && is_string( $nav_context['fontSize'] ) ) {
+				$submenu_attrs['fontSize'] = $nav_context['fontSize'];
+			}
+
+			// Add style object from navigation context
+			if ( ! empty( $nav_context['style'] ) && is_array( $nav_context['style'] ) ) {
+				$submenu_attrs['style'] = $nav_context['style'];
+			}
+
+			// Add custom font size to style
+			if ( ! empty( $nav_context['customFontSize'] ) && is_string( $nav_context['customFontSize'] ) ) {
+				if ( ! isset( $submenu_attrs['style'] ) ) {
+					$submenu_attrs['style'] = array();
+				}
+				if ( ! isset( $submenu_attrs['style']['typography'] ) ) {
+					$submenu_attrs['style']['typography'] = array();
+				}
+				$submenu_attrs['style']['typography']['fontSize'] = $nav_context['customFontSize'];
+			}
+
+			// Add overlay color attributes if present (for the submenu link itself)
+			if ( ! empty( $nav_context['overlayTextColor'] ) && is_string( $nav_context['overlayTextColor'] ) ) {
+				$submenu_attrs['overlayTextColor'] = $nav_context['overlayTextColor'];
+			}
+			if ( ! empty( $nav_context['customOverlayTextColor'] ) && is_string( $nav_context['customOverlayTextColor'] ) ) {
+				if ( ! isset( $submenu_attrs['style'] ) ) {
+					$submenu_attrs['style'] = array();
+				}
+				if ( ! isset( $submenu_attrs['style']['color'] ) ) {
+					$submenu_attrs['style']['color'] = array();
+				}
+				$submenu_attrs['style']['color']['text'] = $nav_context['customOverlayTextColor'];
+			}
+			if ( ! empty( $nav_context['overlayBackgroundColor'] ) && is_string( $nav_context['overlayBackgroundColor'] ) ) {
+				$submenu_attrs['overlayBackgroundColor'] = $nav_context['overlayBackgroundColor'];
+			}
+			if ( ! empty( $nav_context['customOverlayBackgroundColor'] ) && is_string( $nav_context['customOverlayBackgroundColor'] ) ) {
+				if ( ! isset( $submenu_attrs['style'] ) ) {
+					$submenu_attrs['style'] = array();
+				}
+				if ( ! isset( $submenu_attrs['style']['color'] ) ) {
+					$submenu_attrs['style']['color'] = array();
+				}
+				$submenu_attrs['style']['color']['background'] = $nav_context['customOverlayBackgroundColor'];
+			}
 
 			$submenu_content = sprintf(
 				'<!-- wp:navigation-submenu %s --><!-- /wp:navigation-submenu -->',
@@ -419,15 +698,17 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		 * Adds term navigation links to a submenu block.
 		 *
 		 * Uses the minimal cached data (term_id, name, count) to build links.
+		 * Properly inherits context values for consistent styling.
 		 *
 		 * @since 0.1.0
-		 * @param array  $submenu_block  The submenu block structure.
-		 * @param array  $terms_data     Array of term data with 'term_id', 'name', and 'count'.
-		 * @param string $taxonomy_slug  The taxonomy slug.
-		 * @param bool   $show_count     Whether to show event count for term links.
-		 * @return array The modified submenu block.
+		 * @param array<string, mixed>           $submenu_block  The submenu block structure.
+		 * @param array<int, array<string, mixed>> $terms_data     Array of term data with 'term_id', 'name', and 'count'.
+		 * @param string                         $taxonomy_slug  The taxonomy slug.
+		 * @param bool                           $show_count     Whether to show event count for term links.
+		 * @param array<string, mixed>           $nav_context    Navigation context including colors and styles.
+		 * @return array<string, mixed> The modified submenu block.
 		 */
-		private function add_term_links_to_submenu( array $submenu_block, array $terms_data, string $taxonomy_slug, bool $show_count ): array {
+		private function add_term_links_to_submenu( array $submenu_block, array $terms_data, string $taxonomy_slug, bool $show_count, array $nav_context ): array {
 			foreach ( $terms_data as $term_info ) {
 				if ( ! is_array( $term_info ) || ! isset( $term_info['term_id'], $term_info['name'], $term_info['count'] ) ) {
 					continue;
@@ -449,14 +730,63 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 					$show_count
 				);
 
+				$link_attrs = array(
+					'label' => $term_label,
+					'url'   => $term_link,
+					'kind'  => 'taxonomy',
+					'type'  => $taxonomy_slug,
+				);
+
+				// Add fontSize from context
+				if ( ! empty( $nav_context['fontSize'] ) && is_string( $nav_context['fontSize'] ) ) {
+					$link_attrs['fontSize'] = $nav_context['fontSize'];
+				}
+
+				// Add style object from navigation context
+				if ( ! empty( $nav_context['style'] ) && is_array( $nav_context['style'] ) ) {
+					$link_attrs['style'] = $nav_context['style'];
+				}
+
+				// Add custom font size to style
+				if ( ! empty( $nav_context['customFontSize'] ) && is_string( $nav_context['customFontSize'] ) ) {
+					if ( ! isset( $link_attrs['style'] ) ) {
+						$link_attrs['style'] = array();
+					}
+					if ( ! isset( $link_attrs['style']['typography'] ) ) {
+						$link_attrs['style']['typography'] = array();
+					}
+					$link_attrs['style']['typography']['fontSize'] = $nav_context['customFontSize'];
+				}
+
+				// Add overlay colors to child links (these affect the submenu items)
+				if ( ! empty( $nav_context['overlayTextColor'] ) && is_string( $nav_context['overlayTextColor'] ) ) {
+					$link_attrs['textColor'] = $nav_context['overlayTextColor'];
+				}
+				if ( ! empty( $nav_context['customOverlayTextColor'] ) && is_string( $nav_context['customOverlayTextColor'] ) ) {
+					if ( ! isset( $link_attrs['style'] ) ) {
+						$link_attrs['style'] = array();
+					}
+					if ( ! isset( $link_attrs['style']['color'] ) ) {
+						$link_attrs['style']['color'] = array();
+					}
+					$link_attrs['style']['color']['text'] = $nav_context['customOverlayTextColor'];
+				}
+				if ( ! empty( $nav_context['overlayBackgroundColor'] ) && is_string( $nav_context['overlayBackgroundColor'] ) ) {
+					$link_attrs['backgroundColor'] = $nav_context['overlayBackgroundColor'];
+				}
+				if ( ! empty( $nav_context['customOverlayBackgroundColor'] ) && is_string( $nav_context['customOverlayBackgroundColor'] ) ) {
+					if ( ! isset( $link_attrs['style'] ) ) {
+						$link_attrs['style'] = array();
+					}
+					if ( ! isset( $link_attrs['style']['color'] ) ) {
+						$link_attrs['style']['color'] = array();
+					}
+					$link_attrs['style']['color']['background'] = $nav_context['customOverlayBackgroundColor'];
+				}
+
 				$submenu_block['innerBlocks'][] = array(
 					'blockName'    => 'core/navigation-link',
-					'attrs'        => array(
-						'label' => $term_label,
-						'url'   => $term_link,
-						'kind'  => 'taxonomy',
-						'type'  => $taxonomy_slug,
-					),
+					'attrs'        => $link_attrs,
 					'innerBlocks'  => array(),
 					'innerHTML'    => '',
 					'innerContent' => array(),
@@ -471,25 +801,35 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		 *
 		 * This is used as a fallback when no taxonomy is selected or
 		 * when no terms with upcoming events are found.
+		 * Leverages core's navigation-link rendering for consistency.
 		 *
 		 * @since 0.1.0
-		 * @param string $label               The link label.
-		 * @param string $archive_url         The archive URL.
-		 * @param bool   $is_disabled         Whether the link should be disabled.
-		 * @param int    $event_count         The event count.
-		 * @param bool   $show_count          Whether to show event count.
-		 * @param string $wrapper_attributes  Wrapper attributes from get_block_wrapper_attributes().
+		 * @param string   $label               The link label.
+		 * @param string   $archive_url         The archive URL.
+		 * @param bool     $is_disabled         Whether the link should be disabled.
+		 * @param int      $event_count         The event count.
+		 * @param bool     $show_count          Whether to show event count.
+		 * @param string   $wrapper_attributes  Wrapper attributes from get_block_wrapper_attributes().
+		 * @param WP_Block $block               Block instance.
 		 * @return string The rendered navigation link HTML.
 		 */
-		private function render_simple_link( string $label, string $archive_url, bool $is_disabled = false, int $event_count = 0, bool $show_count = false, string $wrapper_attributes = '' ): string {
+		private function render_simple_link( string $label, string $archive_url, bool $is_disabled = false, int $event_count = 0, bool $show_count = false, string $wrapper_attributes = '', WP_Block $block = null ): string {
 			$formatted_label = $this->format_label_with_count( $label, $event_count, $show_count );
-			$link_block = $this->create_link_block( $formatted_label, $archive_url );
+			$nav_context = $this->get_navigation_context( $block );
+			$link_block = $this->create_link_block( $formatted_label, $archive_url, $nav_context );
 
 			if ( ! is_array( $link_block ) ) {
 				return $this->render_fallback_html( $formatted_label, $archive_url, $is_disabled, $wrapper_attributes );
 			}
 
-			$rendered = render_block( $link_block );
+			// Create a WP_Block instance to properly inherit context
+			$link_wp_block = new WP_Block( $link_block, array( 'postId' => get_the_ID() ) );
+
+			// Inherit parent navigation context
+			$link_wp_block->context = array_merge( $block->context, $link_wp_block->context );
+
+			// Render using core's rendering system
+			$rendered = $link_wp_block->render();
 
 			if ( $is_disabled ) {
 				$rendered = $this->add_disabled_attributes( $rendered );
@@ -501,18 +841,43 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		/**
 		 * Creates a navigation link block structure.
 		 *
+		 * Mimics core/navigation-link structure to ensure compatibility
+		 * with theme.json styles and core rendering functions.
+		 *
 		 * @since 0.1.0
-		 * @param string $label       The link label (may contain HTML).
-		 * @param string $archive_url The archive URL.
+		 * @param string               $label        The link label (may contain HTML).
+		 * @param string               $archive_url  The archive URL.
+		 * @param array<string, mixed> $nav_context  Navigation context including colors and styles.
 		 * @return array<string, mixed>|false The parsed link block or false on failure.
 		 */
-		private function create_link_block( string $label, string $archive_url ) {
+		private function create_link_block( string $label, string $archive_url, array $nav_context ) {
 			$link_attrs = array(
 				'label' => $label,
 				'url'   => $archive_url,
 				'kind'  => 'post-type-archive',
 				'type'  => 'gatherpress_event',
 			);
+
+			// Add fontSize from context
+			if ( ! empty( $nav_context['fontSize'] ) && is_string( $nav_context['fontSize'] ) ) {
+				$link_attrs['fontSize'] = $nav_context['fontSize'];
+			}
+
+			// Add style object from navigation context
+			if ( ! empty( $nav_context['style'] ) && is_array( $nav_context['style'] ) ) {
+				$link_attrs['style'] = $nav_context['style'];
+			}
+
+			// Add custom font size to style
+			if ( ! empty( $nav_context['customFontSize'] ) && is_string( $nav_context['customFontSize'] ) ) {
+				if ( ! isset( $link_attrs['style'] ) ) {
+					$link_attrs['style'] = array();
+				}
+				if ( ! isset( $link_attrs['style']['typography'] ) ) {
+					$link_attrs['style']['typography'] = array();
+				}
+				$link_attrs['style']['typography']['fontSize'] = $nav_context['customFontSize'];
+			}
 
 			$link_content = sprintf(
 				'<!-- wp:navigation-link %s /-->',

@@ -27,6 +27,20 @@
 			"default": false
 		}
 	},
+	"usesContext": [
+		"textColor",
+		"customTextColor",
+		"backgroundColor",
+		"customBackgroundColor",
+		"overlayTextColor",
+		"customOverlayTextColor",
+		"overlayBackgroundColor",
+		"customOverlayBackgroundColor",
+		"fontSize",
+		"customFontSize",
+		"showSubmenuIcon",
+		"style"
+	],
 	"example": {
 		"attributes": {
 			"label": "View All Events"
@@ -69,16 +83,6 @@
 			"__experimentalDefaultControls": {
 				"margin": false,
 				"padding": false
-			}
-		},
-		"color": {
-			"text": true,
-			"background": true,
-			"gradients": true,
-			"link": true,
-			"__experimentalDefaultControls": {
-				"text": true,
-				"background": true
 			}
 		}
 	},
