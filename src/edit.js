@@ -16,6 +16,7 @@ import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { useMemo } from '@wordpress/element';
+import { sprintf } from '@wordpress/i18n';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -112,7 +113,10 @@ export default function Edit( { attributes, context, setAttributes, className } 
 			styles.backgroundColor = customBackgroundColor;
 		}
 
-		return Object.keys( styles ).length > 0 ? styles : undefined;
+		if ( Object.keys( styles ).length > 0 ) {
+			return styles;
+		}
+		return undefined;
 	}, [ customTextColor, customBackgroundColor ] );
 
 	/**
@@ -123,13 +127,13 @@ export default function Edit( { attributes, context, setAttributes, className } 
 
 		// Add text color class if present
 		if ( textColor ) {
-			classes.push( `has-${ textColor }-color` );
+			classes.push( sprintf( 'has-%s-color', textColor ) );
 			classes.push( 'has-text-color' );
 		}
 
 		// Add background color class if present
 		if ( backgroundColor ) {
-			classes.push( `has-${ backgroundColor }-background-color` );
+			classes.push( sprintf( 'has-%s-background-color', backgroundColor ) );
 			classes.push( 'has-background' );
 		}
 
@@ -181,28 +185,42 @@ export default function Edit( { attributes, context, setAttributes, className } 
 	 */
 	const taxonomyOptions = [
 		{ label: __( 'All Events', 'gatherpress-magic-menu' ), value: '' },
-		...( taxonomies || [] ).map( ( taxonomy ) => ( {
-			label: taxonomy.name || taxonomy.slug,
-			value: taxonomy.slug,
-		} ) ),
 	];
 
-	/**
-	 * Build the display label with optional count.
-	 */
-	const buildDisplayLabel = () => {
-		let displayLabel = getEffectiveLabel();
-
-		if ( showEventCount ) {
-			displayLabel += ' ';
-		}
-
-		return displayLabel;
-	};
+	if ( taxonomies ) {
+		const mappedTaxonomies = taxonomies.map( ( taxonomy ) => {
+			let taxonomyLabel = taxonomy.slug;
+			if ( taxonomy.name ) {
+				taxonomyLabel = taxonomy.name;
+			}
+			return {
+				label: taxonomyLabel,
+				value: taxonomy.slug,
+			};
+		} );
+		taxonomyOptions.push( ...mappedTaxonomies );
+	}
 
 	const blockProps = useBlockProps( {
 		className: 'wp-block-navigation-item wp-block-navigation-link',
 	} );
+
+	/**
+	 * Build the event count element with proper i18n using sprintf.
+	 * Allows translators to control the position of count and label.
+	 */
+	let labelWithCount = getEffectiveLabel();
+	if ( showEventCount ) {
+		const countSpan = '<span class="gatherpress-magic-menu__count">n</span>';
+		
+		// Translatable format string that allows repositioning count and label
+		labelWithCount = sprintf(
+			/* translators: 1: label text, 2: event count HTML */
+			__( '%1$s %2$s', 'gatherpress-magic-menu' ),
+			getEffectiveLabel(),
+			countSpan
+		);
+	}
 
 	return (
 		<>
@@ -256,7 +274,7 @@ export default function Edit( { attributes, context, setAttributes, className } 
 					<RichText
 						identifier="label"
 						className="wp-block-navigation-item__label"
-						value={ buildDisplayLabel() }
+						value={ getEffectiveLabel() }
 						onChange={ onChangeLabel }
 						placeholder={ getFallbackLabel() }
 						withoutInteractiveFormatting
@@ -272,9 +290,12 @@ export default function Edit( { attributes, context, setAttributes, className } 
 						) }
 					/>
 					{ showEventCount && (
-						<span className={ `gatherpress-magic-menu__count ${ className || '' }` }>
-							n
-						</span>
+						<span
+							className={ sprintf( 'gatherpress-magic-menu__count %s', className || '' ) }
+							dangerouslySetInnerHTML={ {
+								__html: 'n',
+							} }
+						/>
 					) }
 				</a>
 			</li>

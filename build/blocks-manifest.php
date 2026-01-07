@@ -50,6 +50,7 @@ return array(
 			'fontSize',
 			'customFontSize',
 			'showSubmenuIcon',
+			'openSubmenusOnClick',
 			'style'
 		),
 		'example' => array(

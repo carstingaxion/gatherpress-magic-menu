@@ -48,7 +48,7 @@ final class GatherPress_Magic_Menu {
 	 * @since 0.1.0
 	 * @var int
 	 */
-	const CACHE_EXPIRY = 604800;
+	const CACHE_EXPIRY = WEEK_IN_SECONDS;
 
 	/**
 	 * Main plugin instance.

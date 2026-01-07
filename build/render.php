@@ -46,7 +46,7 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		 * @since 0.1.0
 		 * @var int
 		 */
-		const CACHE_EXPIRY = 604800;
+		const CACHE_EXPIRY = WEEK_IN_SECONDS;
 
 		/**
 		 * Main renderer instance.
@@ -330,9 +330,11 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 		}
 
 		/**
-		 * Formats a label with event count using BEM element class.
+		 * Formats a label with event count using BEM element class and sprintf.
 		 *
 		 * Uses .gatherpress-magic-menu__count as the BEM element class.
+		 * Makes the count translatable using WordPress's sprintf and translation functions.
+		 * Allows translators to control the position of the count relative to the label.
 		 *
 		 * @since 0.1.0
 		 * @param string $label      The base label.
@@ -345,10 +347,17 @@ if ( ! class_exists( 'GatherPress_Magic_Menu_Renderer' ) ) {
 				return esc_html( $label );
 			}
 
-			return sprintf(
-				'%s<span class="gatherpress-magic-menu__count">%d</span>',
-				esc_html( $label ),
+			$count_html = sprintf(
+				'<span class="gatherpress-magic-menu__count">%d</span>',
 				(int) $count
+			);
+
+			// Translatable format string that allows repositioning count and label
+			return sprintf(
+				/* translators: 1: label text, 2: event count HTML */
+				__( '%1$s %2$s', 'gatherpress-magic-menu' ),
+				esc_html( $label ),
+				$count_html
 			);
 		}
 

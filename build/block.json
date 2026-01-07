@@ -47,6 +47,7 @@
     "fontSize",
     "customFontSize",
     "showSubmenuIcon",
+    "openSubmenusOnClick",
     "style"
   ],
   "example": {

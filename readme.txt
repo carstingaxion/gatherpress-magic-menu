@@ -1,6 +1,6 @@
 === GatherPress Magic Menu ===
 
-Contributors:      carstenbach & WordPress Telex
+Contributors:      WordPress Telex
 Tags:              block, navigation, gatherpress, events, taxonomy
 Tested up to:      6.8
 Stable tag:        0.1.0

@@ -8,7 +8,7 @@
   \************************/
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"telex/block-gatherpress-magic-menu","version":"0.1.0","title":"GatherPress Magic Menu","category":"widgets","icon":"calendar-alt","description":"A navigation link that dynamically links to the GatherPress events archive","keywords":["navigation","gatherpress","events","menu","link"],"parent":["core/navigation"],"attributes":{"label":{"type":"string","default":""},"gatherpressTaxonomy":{"type":"string","default":""},"showEventCount":{"type":"boolean","default":false},"showTermEventCount":{"type":"boolean","default":false}},"usesContext":["textColor","customTextColor","backgroundColor","customBackgroundColor","overlayTextColor","customOverlayTextColor","overlayBackgroundColor","customOverlayBackgroundColor","fontSize","customFontSize","showSubmenuIcon","style"],"example":{"attributes":{"label":"View All Events"}},"styles":[{"name":"default","label":"Default","isDefault":true},{"name":"badge","label":"Badge"},{"name":"starburst","label":"Starburst"}],"supports":{"html":false,"reusable":true,"typography":{"fontSize":true,"lineHeight":true,"__experimentalFontFamily":true,"__experimentalFontWeight":true,"__experimentalFontStyle":true,"__experimentalTextTransform":true,"__experimentalTextDecoration":true,"__experimentalLetterSpacing":true,"__experimentalDefaultControls":{"fontSize":true}},"spacing":{"margin":true,"padding":true,"__experimentalDefaultControls":{"margin":false,"padding":false}}},"textdomain":"gatherpress-magic-menu","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css","render":"file:./render.php"}');
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"telex/block-gatherpress-magic-menu","version":"0.1.0","title":"GatherPress Magic Menu","category":"widgets","icon":"calendar-alt","description":"A navigation link that dynamically links to the GatherPress events archive","keywords":["navigation","gatherpress","events","menu","link"],"parent":["core/navigation"],"attributes":{"label":{"type":"string","default":""},"gatherpressTaxonomy":{"type":"string","default":""},"showEventCount":{"type":"boolean","default":false},"showTermEventCount":{"type":"boolean","default":false}},"usesContext":["textColor","customTextColor","backgroundColor","customBackgroundColor","overlayTextColor","customOverlayTextColor","overlayBackgroundColor","customOverlayBackgroundColor","fontSize","customFontSize","showSubmenuIcon","openSubmenusOnClick","style"],"example":{"attributes":{"label":"View All Events"}},"styles":[{"name":"default","label":"Default","isDefault":true},{"name":"badge","label":"Badge"},{"name":"starburst","label":"Starburst"}],"supports":{"html":false,"reusable":true,"typography":{"fontSize":true,"lineHeight":true,"__experimentalFontFamily":true,"__experimentalFontWeight":true,"__experimentalFontStyle":true,"__experimentalTextTransform":true,"__experimentalTextDecoration":true,"__experimentalLetterSpacing":true,"__experimentalDefaultControls":{"fontSize":true}},"spacing":{"margin":true,"padding":true,"__experimentalDefaultControls":{"margin":false,"padding":false}}},"textdomain":"gatherpress-magic-menu","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css","render":"file:./render.php"}');
 
 /***/ },
 
@@ -50,6 +50,7 @@ __webpack_require__.r(__webpack_exports__);
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
+
 
 
 
@@ -167,7 +168,10 @@ function Edit({
     if (customBackgroundColor) {
       styles.backgroundColor = customBackgroundColor;
     }
-    return Object.keys(styles).length > 0 ? styles : undefined;
+    if (Object.keys(styles).length > 0) {
+      return styles;
+    }
+    return undefined;
   }, [customTextColor, customBackgroundColor]);
 
   /**
@@ -178,13 +182,13 @@ function Edit({
 
     // Add text color class if present
     if (textColor) {
-      classes.push(`has-${textColor}-color`);
+      classes.push((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)('has-%s-color', textColor));
       classes.push('has-text-color');
     }
 
     // Add background color class if present
     if (backgroundColor) {
-      classes.push(`has-${backgroundColor}-background-color`);
+      classes.push((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)('has-%s-background-color', backgroundColor));
       classes.push('has-background');
     }
     return classes.join(' ');
@@ -244,24 +248,36 @@ function Edit({
   const taxonomyOptions = [{
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('All Events', 'gatherpress-magic-menu'),
     value: ''
-  }, ...(taxonomies || []).map(taxonomy => ({
-    label: taxonomy.name || taxonomy.slug,
-    value: taxonomy.slug
-  }))];
-
-  /**
-   * Build the display label with optional count.
-   */
-  const buildDisplayLabel = () => {
-    let displayLabel = getEffectiveLabel();
-    if (showEventCount) {
-      displayLabel += ' ';
-    }
-    return displayLabel;
-  };
+  }];
+  if (taxonomies) {
+    const mappedTaxonomies = taxonomies.map(taxonomy => {
+      let taxonomyLabel = taxonomy.slug;
+      if (taxonomy.name) {
+        taxonomyLabel = taxonomy.name;
+      }
+      return {
+        label: taxonomyLabel,
+        value: taxonomy.slug
+      };
+    });
+    taxonomyOptions.push(...mappedTaxonomies);
+  }
   const blockProps = (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useBlockProps)({
     className: 'wp-block-navigation-item wp-block-navigation-link'
   });
+
+  /**
+   * Build the event count element with proper i18n using sprintf.
+   * Allows translators to control the position of count and label.
+   */
+  let labelWithCount = getEffectiveLabel();
+  if (showEventCount) {
+    const countSpan = '<span class="gatherpress-magic-menu__count">n</span>';
+
+    // Translatable format string that allows repositioning count and label
+    labelWithCount = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: 1: label text, 2: event count HTML */
+    (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('%1$s %2$s', 'gatherpress-magic-menu'), getEffectiveLabel(), countSpan);
+  }
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InspectorControls, {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelBody, {
@@ -295,15 +311,17 @@ function Edit({
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.RichText, {
           identifier: "label",
           className: "wp-block-navigation-item__label",
-          value: buildDisplayLabel(),
+          value: getEffectiveLabel(),
           onChange: onChangeLabel,
           placeholder: getFallbackLabel(),
           withoutInteractiveFormatting: true,
           allowedFormats: ['core/bold', 'core/italic', 'core/image', 'core/strikethrough'],
           "aria-label": (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Navigation link text', 'gatherpress-magic-menu')
         }), showEventCount && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("span", {
-          className: `gatherpress-magic-menu__count ${className || ''}`,
-          children: "n"
+          className: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)('gatherpress-magic-menu__count %s', className || ''),
+          dangerouslySetInnerHTML: {
+            __html: 'n'
+          }
         })]
       })
     })]
