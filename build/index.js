@@ -105,7 +105,12 @@ function Edit({
     textColor,
     customTextColor,
     backgroundColor,
-    customBackgroundColor
+    customBackgroundColor,
+    overlayTextColor,
+    customOverlayTextColor,
+    overlayBackgroundColor,
+    customOverlayBackgroundColor,
+    showSubmenuIcon
   } = context;
 
   /**
@@ -175,6 +180,28 @@ function Edit({
   }, [customTextColor, customBackgroundColor]);
 
   /**
+   * Build overlay styles for submenu preview.
+   * These are the styles that would apply to term links in the submenu.
+   */
+  const overlayStyles = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_5__.useMemo)(() => {
+    const styles = {};
+
+    // Apply overlay text color from context
+    if (customOverlayTextColor) {
+      styles.color = customOverlayTextColor;
+    }
+
+    // Apply overlay background color from context
+    if (customOverlayBackgroundColor) {
+      styles.backgroundColor = customOverlayBackgroundColor;
+    }
+    if (Object.keys(styles).length > 0) {
+      return styles;
+    }
+    return undefined;
+  }, [customOverlayTextColor, customOverlayBackgroundColor]);
+
+  /**
    * Build class names from navigation context.
    */
   const linkClasses = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_5__.useMemo)(() => {
@@ -193,6 +220,26 @@ function Edit({
     }
     return classes.join(' ');
   }, [textColor, backgroundColor]);
+
+  /**
+   * Build overlay class names for submenu preview.
+   */
+  const overlayClasses = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_5__.useMemo)(() => {
+    const classes = ['wp-block-navigation-item__content'];
+
+    // Add overlay text color class if present
+    if (overlayTextColor) {
+      classes.push((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)('has-%s-color', overlayTextColor));
+      classes.push('has-text-color');
+    }
+
+    // Add overlay background color class if present
+    if (overlayBackgroundColor) {
+      classes.push((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)('has-%s-background-color', overlayBackgroundColor));
+      classes.push('has-background');
+    }
+    return classes.join(' ');
+  }, [overlayTextColor, overlayBackgroundColor]);
 
   /**
    * Handles changes to the label text.
@@ -263,7 +310,7 @@ function Edit({
     taxonomyOptions.push(...mappedTaxonomies);
   }
   const blockProps = (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useBlockProps)({
-    className: 'wp-block-navigation-item wp-block-navigation-link'
+    className: gatherpressTaxonomy ? 'wp-block-navigation-item wp-block-navigation-submenu has-child open-on-hover-click' : 'wp-block-navigation-item wp-block-navigation-link'
   });
 
   /**
@@ -278,6 +325,44 @@ function Edit({
     labelWithCount = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: 1: label text, 2: event count HTML */
     (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('%1$s %2$s', 'gatherpress-magic-menu'), getEffectiveLabel(), countSpan);
   }
+
+  /**
+   * Renders the placeholder submenu when a taxonomy is selected.
+   */
+  const renderSubmenuPlaceholder = () => {
+    if (!gatherpressTaxonomy) {
+      return null;
+    }
+
+    // Example term names for placeholder
+    const exampleTerms = [(0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Example Term 1', 'gatherpress-magic-menu'), (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Example Term 2', 'gatherpress-magic-menu')];
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("ul", {
+      className: "wp-block-navigation__submenu-container",
+      children: exampleTerms.map((termName, index) => {
+        let termLabelContent = termName;
+        if (showTermEventCount) {
+          // Build term label with count using sprintf for i18n
+          const termCountSpan = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)('<span class="gatherpress-magic-menu__count %s">n</span>', className || '');
+          termLabelContent = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.sprintf)(/* translators: 1: term name, 2: event count HTML */
+          (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('%1$s %2$s', 'gatherpress-magic-menu'), termName, termCountSpan);
+        }
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("li", {
+          className: "wp-block-navigation-item wp-block-navigation-link",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("a", {
+            className: overlayClasses,
+            style: overlayStyles,
+            href: "#",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("span", {
+              className: "wp-block-navigation-item__label",
+              dangerouslySetInnerHTML: {
+                __html: termLabelContent
+              }
+            })
+          })
+        }, index);
+      })
+    });
+  };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.Fragment, {
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InspectorControls, {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelBody, {
@@ -301,9 +386,9 @@ function Edit({
           help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Display the number of upcoming events next to each term link.', 'gatherpress-magic-menu')
         })]
       })
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("li", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("li", {
       ...blockProps,
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("a", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("a", {
         className: linkClasses,
         style: linkStyles,
         href: "#gatherpress-events-archive",
@@ -322,8 +407,27 @@ function Edit({
           dangerouslySetInnerHTML: {
             __html: 'n'
           }
+        }), gatherpressTaxonomy && showSubmenuIcon && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("span", {
+          className: "wp-block-navigation__submenu-icon",
+          "aria-hidden": "true",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("svg", {
+            xmlns: "http://www.w3.org/2000/svg",
+            width: "12",
+            height: "12",
+            viewBox: "0 0 12 12",
+            fill: "none",
+            role: "img",
+            "aria-hidden": "true",
+            focusable: "false",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("path", {
+              d: "M1.50002 4L6.00002 8L10.5 4",
+              fill: "none",
+              stroke: "currentColor",
+              strokeWidth: "1.5"
+            })
+          })
         })]
-      })
+      }), renderSubmenuPlaceholder()]
     })]
   });
 }

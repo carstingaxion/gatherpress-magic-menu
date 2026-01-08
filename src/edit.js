@@ -56,6 +56,11 @@ export default function Edit( { attributes, context, setAttributes, className } 
 		customTextColor,
 		backgroundColor,
 		customBackgroundColor,
+		overlayTextColor,
+		customOverlayTextColor,
+		overlayBackgroundColor,
+		customOverlayBackgroundColor,
+		showSubmenuIcon,
 	} = context;
 
 	/**
@@ -120,6 +125,29 @@ export default function Edit( { attributes, context, setAttributes, className } 
 	}, [ customTextColor, customBackgroundColor ] );
 
 	/**
+	 * Build overlay styles for submenu preview.
+	 * These are the styles that would apply to term links in the submenu.
+	 */
+	const overlayStyles = useMemo( () => {
+		const styles = {};
+
+		// Apply overlay text color from context
+		if ( customOverlayTextColor ) {
+			styles.color = customOverlayTextColor;
+		}
+
+		// Apply overlay background color from context
+		if ( customOverlayBackgroundColor ) {
+			styles.backgroundColor = customOverlayBackgroundColor;
+		}
+
+		if ( Object.keys( styles ).length > 0 ) {
+			return styles;
+		}
+		return undefined;
+	}, [ customOverlayTextColor, customOverlayBackgroundColor ] );
+
+	/**
 	 * Build class names from navigation context.
 	 */
 	const linkClasses = useMemo( () => {
@@ -139,6 +167,27 @@ export default function Edit( { attributes, context, setAttributes, className } 
 
 		return classes.join( ' ' );
 	}, [ textColor, backgroundColor ] );
+
+	/**
+	 * Build overlay class names for submenu preview.
+	 */
+	const overlayClasses = useMemo( () => {
+		const classes = [ 'wp-block-navigation-item__content' ];
+
+		// Add overlay text color class if present
+		if ( overlayTextColor ) {
+			classes.push( sprintf( 'has-%s-color', overlayTextColor ) );
+			classes.push( 'has-text-color' );
+		}
+
+		// Add overlay background color class if present
+		if ( overlayBackgroundColor ) {
+			classes.push( sprintf( 'has-%s-background-color', overlayBackgroundColor ) );
+			classes.push( 'has-background' );
+		}
+
+		return classes.join( ' ' );
+	}, [ overlayTextColor, overlayBackgroundColor ] );
 
 	/**
 	 * Handles changes to the label text.
@@ -202,7 +251,9 @@ export default function Edit( { attributes, context, setAttributes, className } 
 	}
 
 	const blockProps = useBlockProps( {
-		className: 'wp-block-navigation-item wp-block-navigation-link',
+		className: gatherpressTaxonomy
+			? 'wp-block-navigation-item wp-block-navigation-submenu has-child open-on-hover-click'
+			: 'wp-block-navigation-item wp-block-navigation-link',
 	} );
 
 	/**
@@ -221,6 +272,64 @@ export default function Edit( { attributes, context, setAttributes, className } 
 			countSpan
 		);
 	}
+
+	/**
+	 * Renders the placeholder submenu when a taxonomy is selected.
+	 */
+	const renderSubmenuPlaceholder = () => {
+		if ( ! gatherpressTaxonomy ) {
+			return null;
+		}
+
+		// Example term names for placeholder
+		const exampleTerms = [
+			__( 'Example Term 1', 'gatherpress-magic-menu' ),
+			__( 'Example Term 2', 'gatherpress-magic-menu' ),
+		];
+
+		return (
+			<ul className="wp-block-navigation__submenu-container">
+				{ exampleTerms.map( ( termName, index ) => {
+					let termLabelContent = termName;
+
+					if ( showTermEventCount ) {
+						// Build term label with count using sprintf for i18n
+						const termCountSpan = sprintf(
+							'<span class="gatherpress-magic-menu__count %s">n</span>',
+							className || ''
+						);
+
+						termLabelContent = sprintf(
+							/* translators: 1: term name, 2: event count HTML */
+							__( '%1$s %2$s', 'gatherpress-magic-menu' ),
+							termName,
+							termCountSpan
+						);
+					}
+
+					return (
+						<li
+							key={ index }
+							className="wp-block-navigation-item wp-block-navigation-link"
+						>
+							<a
+								className={ overlayClasses }
+								style={ overlayStyles }
+								href="#"
+							>
+								<span
+									className="wp-block-navigation-item__label"
+									dangerouslySetInnerHTML={ {
+										__html: termLabelContent,
+									} }
+								/>
+							</a>
+						</li>
+					);
+				} ) }
+			</ul>
+		);
+	};
 
 	return (
 		<>
@@ -297,7 +406,32 @@ export default function Edit( { attributes, context, setAttributes, className } 
 							} }
 						/>
 					) }
+					{ gatherpressTaxonomy && showSubmenuIcon && (
+						<span
+							className="wp-block-navigation__submenu-icon"
+							aria-hidden="true"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="12"
+								height="12"
+								viewBox="0 0 12 12"
+								fill="none"
+								role="img"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<path
+									d="M1.50002 4L6.00002 8L10.5 4"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="1.5"
+								/>
+							</svg>
+						</span>
+					) }
 				</a>
+				{ renderSubmenuPlaceholder() }
 			</li>
 		</>
 	);
