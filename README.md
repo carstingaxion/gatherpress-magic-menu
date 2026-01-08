@@ -1,6 +1,6 @@
 # GatherPress Magic Menu
 
-**Contributors:**      WordPress Telex  
+**Contributors:**      carstenbach & WordPress Telex  
 **Tags:**              block, navigation, gatherpress, events, taxonomy  
 **Tested up to:**      6.8  
 **Stable tag:**        0.1.0  
@@ -172,3 +172,66 @@ The cache clears automatically. To force a refresh, temporarily unpublish and re
 * Parent block: core/navigation
 * Renders as: core/navigation-link or core/navigation-submenu
 * Inherits navigation block styling
+
+
+## Chances for improvement
+
+### Performance & Caching
+
+[ ] Cache Invalidation Granularity: Currently, changing any event clears ALL taxonomy caches. Consider invalidating only the specific taxonomy caches that are actually affected by the changed event.
+
+[ ] Transient Cleanup: Add a cleanup mechanism for orphaned transients when taxonomies are deleted or unregistered from gatherpress_event.
+
+[ ] Query Optimization: The count_events_for_term() method loops through all events for each term. Consider using a single WP_Query with taxonomy parameters to get counts more efficiently._
+
+### User Experience
+
+[ ] Block Preview: Add a more realistic preview in the editor that shows actual term names (not just placeholders) when a taxonomy is selected, so editors can see what will render.
+
+[ ] Empty State Messaging: When no upcoming events exist, consider showing an admin notice in the editor explaining why the link will be disabled.
+
+[ ] Taxonomy Validation: Add validation to check if the selected taxonomy still exists/is still registered with gatherpress_event and show a warning if not.
+
+[ ] Block Variation: Create a block variation for each common GatherPress taxonomy (Topics, Venues) with pre-configured settings for easier setup._
+
+### Accessibility
+
+[ ] ARIA Labels: The disabled link could use a more descriptive aria-label explaining why it's disabled (e.g., "No upcoming events available").
+
+[ ] Screen Reader Text: Add visually hidden text for screen readers explaining the event count context.
+
+### Code Quality
+
+[ ] Type Safety: While PHPStan compatibility was added, consider adding more specific PHPDoc @var annotations for complex array structures.
+
+[ ] Error Handling: Add more graceful error handling for edge cases like corrupted transient data or WP_Error returns from WordPress functions.
+
+[ ] Separation of Concerns: The renderer class is quite large (500+ lines). Consider extracting cache management, block creation, and HTML manipulation into separate helper classes.
+
+### Features
+
+[ ] Date Range Filtering: Add options to filter by custom date ranges (e.g., "Next 30 days", "This month") instead of just "upcoming".
+
+[ ] Term Ordering: Add options for custom term ordering (alphabetical, by event count, by term order).
+
+[ ] Exclude Terms: Add ability to exclude specific terms from the submenu.
+
+[ ] Maximum Terms: Add option to limit the number of terms shown (with a "View All" link if needed).
+
+[ ] Hierarchical Terms: If taxonomies support hierarchical terms, add support for nested submenus.
+
+### Integration
+
+[ ] GatherPress Hooks: Consider integrating with GatherPress-specific hooks if available, rather than relying only on core WordPress hooks.
+
+[ ] REST API Endpoint: Create a custom REST endpoint to expose event counts, allowing for dynamic updates without page reload.
+
+[ ] Block Patterns: Create pre-configured block patterns showing common navigation setups using this block.
+
+### Testing & Documentation
+
+[ ] Unit Tests: Add unit tests for the renderer class methods, especially caching logic and count calculations.
+
+[ ] Inline Code Examples: Add more code examples in the README showing advanced customization through filters/hooks.
+
+[ ] Developer Hooks: Expose filter hooks for developers to modify queries, cache keys, or output before rendering.

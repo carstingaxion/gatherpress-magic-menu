@@ -8,7 +8,7 @@
   \************************/
 (module) {
 
-module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"telex/block-gatherpress-magic-menu","version":"0.1.0","title":"GatherPress Magic Menu","category":"widgets","icon":"calendar-alt","description":"A navigation link that dynamically links to the GatherPress events archive","keywords":["navigation","gatherpress","events","menu","link"],"parent":["core/navigation"],"attributes":{"label":{"type":"string","default":""},"gatherpressTaxonomy":{"type":"string","default":""},"showEventCount":{"type":"boolean","default":false},"showTermEventCount":{"type":"boolean","default":false}},"usesContext":["textColor","customTextColor","backgroundColor","customBackgroundColor","overlayTextColor","customOverlayTextColor","overlayBackgroundColor","customOverlayBackgroundColor","fontSize","customFontSize","showSubmenuIcon","openSubmenusOnClick","style"],"example":{"attributes":{"label":"View All Events"}},"styles":[{"name":"default","label":"Default","isDefault":true},{"name":"badge","label":"Badge"},{"name":"starburst","label":"Starburst"}],"supports":{"html":false,"reusable":true,"typography":{"fontSize":true,"lineHeight":true,"__experimentalFontFamily":true,"__experimentalFontWeight":true,"__experimentalFontStyle":true,"__experimentalTextTransform":true,"__experimentalTextDecoration":true,"__experimentalLetterSpacing":true,"__experimentalDefaultControls":{"fontSize":true}},"spacing":{"margin":true,"padding":true,"__experimentalDefaultControls":{"margin":false,"padding":false}}},"textdomain":"gatherpress-magic-menu","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css","render":"file:./render.php"}');
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"gatherpress/magic-menu","version":"0.1.0","title":"GatherPress Magic Menu","category":"widgets","icon":"calendar-alt","description":"A navigation link that dynamically links to the GatherPress events archive","keywords":["navigation","gatherpress","events","menu","link"],"parent":["core/navigation"],"attributes":{"label":{"type":"string","default":""},"gatherpressTaxonomy":{"type":"string","default":""},"showEventCount":{"type":"boolean","default":false},"showTermEventCount":{"type":"boolean","default":false}},"usesContext":["textColor","customTextColor","backgroundColor","customBackgroundColor","overlayTextColor","customOverlayTextColor","overlayBackgroundColor","customOverlayBackgroundColor","fontSize","customFontSize","showSubmenuIcon","openSubmenusOnClick","style"],"example":{"attributes":{"label":"View All Events"}},"styles":[{"name":"default","label":"Default","isDefault":true},{"name":"badge","label":"Badge"},{"name":"starburst","label":"Starburst"}],"supports":{"html":false,"reusable":true,"typography":{"fontSize":true,"lineHeight":true,"__experimentalFontFamily":true,"__experimentalFontWeight":true,"__experimentalFontStyle":true,"__experimentalTextTransform":true,"__experimentalTextDecoration":true,"__experimentalLetterSpacing":true,"__experimentalDefaultControls":{"fontSize":true}},"spacing":{"margin":true,"padding":true,"__experimentalDefaultControls":{"margin":false,"padding":false}}},"textdomain":"gatherpress-magic-menu","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css","render":"file:./render.php"}');
 
 /***/ },
 
@@ -382,14 +382,14 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * Make the Magic Menu Block available to Navigation blocks.
  */
-(0,_wordpress_hooks__WEBPACK_IMPORTED_MODULE_1__.addFilter)('blocks.registerBlockType', 'telex-block-gatherpress-magic-menu/add-taxonomy-attribute', (settings, name) => {
+(0,_wordpress_hooks__WEBPACK_IMPORTED_MODULE_1__.addFilter)('blocks.registerBlockType', 'gatherpress-magic-menu/add-taxonomy-attribute', (settings, name) => {
   var _settings$allowedBloc;
   if (name !== 'core/navigation') {
     return settings;
   }
   return {
     ...settings,
-    allowedBlocks: [...((_settings$allowedBloc = settings.allowedBlocks) !== null && _settings$allowedBloc !== void 0 ? _settings$allowedBloc : []), 'telex-block-gatherpress-magic-menu']
+    allowedBlocks: [...((_settings$allowedBloc = settings.allowedBlocks) !== null && _settings$allowedBloc !== void 0 ? _settings$allowedBloc : []), 'gatherpress-magic-menu']
   };
 });
 

@@ -5,7 +5,7 @@
  * Version:           0.1.0
  * Requires at least: 6.4
  * Requires PHP:      7.4
- * Author:            WordPress Telex
+ * Author:            carstenbach & WordPress Telex
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       gatherpress-magic-menu
@@ -139,7 +139,7 @@ final class GatherPress_Magic_Menu {
 		}
 
 		// Add our block to the hooked blocks array.
-		$hooked_blocks[] = 'telex/block-gatherpress-magic-menu';
+		$hooked_blocks[] = 'gatherpress/magic-menu';
 
 		return $hooked_blocks;
 	}

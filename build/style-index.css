@@ -18,7 +18,7 @@
  * Block: GatherPress Magic Menu
  * Base styles for the navigation block integration.
  */
-.wp-block-telex-block-gatherpress-magic-menu {
+.wp-block-gatherpress-magic-menu {
   /* Inherits styles from .wp-block-navigation-item */
   /* Add custom frontend styles here if needed */
 }
@@ -119,6 +119,8 @@
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #d63638, 0 2px 8px rgba(0, 0, 0, 0.15);
   transform: rotate(-5deg);
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+  z-index: 100;
 }
 .is-style-starburst .gatherpress-magic-menu__count::before, .is-style-starburst .gatherpress-magic-menu__count::after {
   content: none;

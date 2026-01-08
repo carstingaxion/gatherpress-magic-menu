@@ -26,7 +26,7 @@ import metadata from './block.json';
  */
 addFilter(
 	'blocks.registerBlockType',
-	'telex-block-gatherpress-magic-menu/add-taxonomy-attribute',
+	'gatherpress-magic-menu/add-taxonomy-attribute',
 	( settings, name ) => {
 		if ( name !== 'core/navigation' ) {
 			return settings;
@@ -36,7 +36,7 @@ addFilter(
 			...settings,
           	allowedBlocks: [
 				...( settings.allowedBlocks ?? [] ),
-				'telex-block-gatherpress-magic-menu',
+				'gatherpress-magic-menu',
 			],
 		};
 	}
