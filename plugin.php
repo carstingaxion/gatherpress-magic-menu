@@ -51,3 +51,16 @@ function gatherpress_magic_menu_setup(): void {
 	}
 }
 add_action( 'plugins_loaded', 'gatherpress_magic_menu_setup' );
+
+/**
+ * Plugin deactivation cleanup.
+ *
+ * Removes all cached transients when the plugin is deactivated.
+ *
+ * @since 0.1.0
+ * @return void
+ */
+function gatherpress_magic_menu_deactivate(): void {
+	\GatherPress_Magic_Menu\Cache::get_instance()->clear_all_caches();
+}
+register_deactivation_hook( __FILE__, 'gatherpress_magic_menu_deactivate' );

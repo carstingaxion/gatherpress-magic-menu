@@ -37,7 +37,10 @@ if ( ! class_exists( 'Cache' ) ) {
 		 *
 		 * @since 0.1.0
 		 */
-		private function __construct() {}
+		private function __construct() {
+			add_action( 'transition_post_status', array( $this, 'clear_cache_on_status_change' ), 10, 3 );
+			add_action( 'set_object_terms', array( $this, 'clear_cache_on_terms_change' ), 10, 4 );
+		}
 
 		/**
 		 * Retrieves all upcoming GatherPress event IDs with caching.
@@ -184,6 +187,91 @@ if ( ! class_exists( 'Cache' ) ) {
 			}
 
 			return $count;
+		}
+	
+		/**
+		 * Clears all caches when an event post status changes.
+		 *
+		 * Triggers when a post transitions from or to 'publish' status.
+		 * Clears both upcoming events cache and all taxonomy-specific term caches.
+		 *
+		 * @since 0.1.0
+		 * @param string   $new_status New post status.
+		 * @param string   $old_status Old post status.
+		 * @param \WP_Post $post       Post object.
+		 * @return void
+		 */
+		public function clear_cache_on_status_change( string $new_status, string $old_status, \WP_Post $post ): void {
+			// Only clear cache if this is a gatherpress_event post.
+			if ( 'gatherpress_event' !== $post->post_type ) {
+				return;
+			}
+	
+			// Only clear cache if status changed from or to 'publish'.
+			if ( 'publish' !== $new_status && 'publish' !== $old_status ) {
+				return;
+			}
+	
+			$this->clear_all_caches();
+		}
+	
+		/**
+		 * Clears taxonomy-specific caches when terms are assigned to an event.
+		 *
+		 * Triggers when terms are set on a post (added, updated, or removed).
+		 * Only processes gatherpress_event posts and taxonomies registered with that post type.
+		 *
+		 * @since 0.1.0
+		 * @param int                    $object_id  Object ID.
+		 * @param array<int, int|string> $terms      An array of object term IDs or slugs.
+		 * @param array<int, int>        $tt_ids     An array of term taxonomy IDs.
+		 * @param string                 $taxonomy   Taxonomy slug.
+		 * @return void
+		 */
+		public function clear_cache_on_terms_change( int $object_id, array $terms, array $tt_ids, string $taxonomy ): void {
+			// Only process if this is a gatherpress_event post.
+			if ( 'gatherpress_event' !== get_post_type( $object_id ) ) {
+				return;
+			}
+	
+			// Verify the taxonomy is registered with gatherpress_event.
+			$taxonomy_object = get_taxonomy( $taxonomy );
+			if ( ! $taxonomy_object || ! in_array( 'gatherpress_event', (array) $taxonomy_object->object_type, true ) ) {
+				return;
+			}
+	
+			// Clear the taxonomy-specific term cache.
+			delete_transient( 'gatherpress_magic_menu_terms_' . $taxonomy );
+		}
+	
+		/**
+		 * Clears all plugin caches.
+		 *
+		 * Removes both the upcoming events cache and all taxonomy-specific term caches.
+		 * Used during deactivation and when significant event changes occur.
+		 *
+		 * @since 0.1.0
+		 * @return void
+		 */
+		public function clear_all_caches(): void {
+			/**
+			 * @var \wpdb  $wpdb WordPress database abstraction object.
+			 */
+			global $wpdb;
+	
+			// Prepare the LIKE patterns for deletion.
+			$transient_pattern = $wpdb->esc_like( '_transient_gatherpress_magic_menu_' ) . '%';
+			$timeout_pattern   = $wpdb->esc_like( '_transient_timeout_gatherpress_magic_menu_' ) . '%';
+	
+			// Prepare SQL statement.
+			$table = $wpdb->options;
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+				$wpdb->prepare(
+					"DELETE FROM {$table} WHERE option_name LIKE %s OR option_name LIKE %s",
+					$transient_pattern,
+					$timeout_pattern
+				)
+			);
 		}
 	}
 }
