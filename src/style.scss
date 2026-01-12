@@ -18,7 +18,10 @@
  */
 .wp-block-gatherpress-magic-menu {
 	/* Inherits styles from .wp-block-navigation-item */
-	/* Add custom frontend styles here if needed */
+	
+	& .wp-block-navigation-item__label {
+		display: flex;
+	}
 }
 
 /**
@@ -101,7 +104,7 @@
 		font-size: 0.65em;
 		line-height: 1;
 		box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
-		transition: all 0.2s ease;
+		transition: background-color 0.2s ease;
 
 		&::before,
 		&::after {
@@ -143,7 +146,7 @@
 			0 0 0 3px #d63638,
 			0 2px 8px rgba(0, 0, 0, 0.15);
 		transform: rotate(-5deg);
-		transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+		transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 		position: relative;
 		z-index: 100;
 
@@ -173,8 +176,8 @@
  */
 .wp-block-navigation-submenu {
 	.gatherpress-magic-menu__count {
-		margin-left: auto;
-		margin-right: 0;
+		// margin-left: auto;
+		// margin-right: 0;
 	}
 }
 

@@ -20,7 +20,9 @@
  */
 .wp-block-gatherpress-magic-menu {
   /* Inherits styles from .wp-block-navigation-item */
-  /* Add custom frontend styles here if needed */
+}
+.wp-block-gatherpress-magic-menu .wp-block-navigation-item__label {
+  display: flex;
 }
 /**
  * Modifier: Disabled State
@@ -87,7 +89,7 @@
   font-size: 0.65em;
   line-height: 1;
   box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 .is-style-badge .gatherpress-magic-menu__count::before, .is-style-badge .gatherpress-magic-menu__count::after {
   content: none;
@@ -118,7 +120,7 @@
   vertical-align: middle;
   box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #d63638, 0 2px 8px rgba(0, 0, 0, 0.15);
   transform: rotate(-5deg);
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   position: relative;
   z-index: 100;
 }
@@ -135,10 +137,6 @@
  * Submenu Spacing
  * Ensure proper spacing for counts in submenus.
  */
-.wp-block-navigation-submenu .gatherpress-magic-menu__count {
-  margin-left: auto;
-  margin-right: 0;
-}
 /**
  * Disabled State Adjustments
  * Remove effects when the link is disabled.
