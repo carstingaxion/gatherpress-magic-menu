@@ -53,7 +53,7 @@ if ( ! class_exists( 'Cache' ) ) {
 				return $cached_events;
 			}
 
-			$events = get_posts(
+			$events = new \WP_Query(
 				array(
 					'post_type'               => 'gatherpress_event',
 					'post_status'             => 'publish',
@@ -63,14 +63,9 @@ if ( ! class_exists( 'Cache' ) ) {
 					'fields'                  => 'ids',
 					'no_found_rows'           => true,
 					'update_post_term_cache'  => false,
-					'update_menu_item_cache'  => false,
-					'suppress_filters'        => false,
 				)
 			);
-
-			if ( ! is_array( $events ) ) {
-				$events = array();
-			}
+			$events = ! empty( $events->posts ) ? $events->posts : array();
 
 			set_transient( $cache_key, $events, self::CACHE_EXPIRY );
 
@@ -125,9 +120,9 @@ if ( ! class_exists( 'Cache' ) ) {
 			// Build minimal data structure with pre-calculated counts.
 			$terms_data = array();
 			foreach ( $terms as $term ) {
-				if ( ! $term instanceof \WP_Term ) {
-					continue;
-				}
+				// if ( ! $term instanceof \WP_Term ) {
+				// 	continue;
+				// }
 
 				$count        = $this->count_events_for_term( $term->term_id, $taxonomy_slug, $upcoming_event_ids );
 				$terms_data[] = array(
@@ -156,9 +151,9 @@ if ( ! class_exists( 'Cache' ) ) {
 			foreach ( $upcoming_event_ids as $event_id ) {
 				$event_terms = wp_get_post_terms( $event_id, $taxonomy_slug, array( 'fields' => 'ids' ) );
 
-				if ( ! is_wp_error( $event_terms ) && is_array( $event_terms ) && ! empty( $event_terms ) ) {
+				if ( ! is_wp_error( $event_terms ) && ! empty( $event_terms ) ) {
 					foreach ( $event_terms as $term_id ) {
-						if ( is_int( $term_id ) ) {
+						if ( $term_id > 0 ) {
 							$term_ids_map[ $term_id ] = true;
 						}
 					}
@@ -183,7 +178,7 @@ if ( ! class_exists( 'Cache' ) ) {
 			foreach ( $upcoming_event_ids as $event_id ) {
 				$event_terms = wp_get_post_terms( $event_id, $taxonomy_slug, array( 'fields' => 'ids' ) );
 
-				if ( ! is_wp_error( $event_terms ) && is_array( $event_terms ) && in_array( $term_id, $event_terms, true ) ) {
+				if ( ! is_wp_error( $event_terms ) && in_array( $term_id, $event_terms, true ) ) {
 					++$count;
 				}
 			}

@@ -34,7 +34,7 @@ addFilter(
 
 		return {
 			...settings,
-          	allowedBlocks: [
+			allowedBlocks: [
 				...( settings.allowedBlocks ?? [] ),
 				'gatherpress-magic-menu',
 			],

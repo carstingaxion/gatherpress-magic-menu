@@ -40,7 +40,7 @@ if ( ! class_exists( 'Label_Formatter' ) ) {
 		public function get_fallback_label(): string {
 			$post_type_object = get_post_type_object( 'gatherpress_event' );
 
-			if ( $post_type_object && isset( $post_type_object->labels->name ) ) {
+			if ( $post_type_object && isset( $post_type_object->labels->name ) && is_string( $post_type_object->labels->name ) ) {
 				return $post_type_object->labels->name;
 			}
 

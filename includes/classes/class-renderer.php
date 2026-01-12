@@ -239,8 +239,8 @@ if ( ! class_exists( 'Renderer' ) ) {
 			// Inherit parent navigation context.
 			$submenu_wp_block->context = array_merge( $block->context, $submenu_wp_block->context );
 
-			// Apply core's color support to the submenu attributes (for the container).
-			$rendered = $submenu_wp_block->render();
+			$submenu_container_attributes = $processor->apply_overlay_colors_to_container( $submenu_wp_block );
+			$rendered                     = $submenu_wp_block->render();
 
 			// Apply container colors to the <ul> element.
 			if ( ! empty( $submenu_container_attributes ) ) {

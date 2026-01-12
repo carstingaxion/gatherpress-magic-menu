@@ -6,10 +6,10 @@
  *
  * Uses BEM class naming: .gatherpress-magic-menu--disabled
  *
- * @package GatherPressMagicMenu
+ * @package
  */
 
-( function() {
+( function () {
 	'use strict';
 
 	/**
@@ -19,7 +19,7 @@
 	 */
 	function handleDisabledClick( event ) {
 		const link = event.currentTarget;
-		
+
 		if ( link.getAttribute( 'aria-disabled' ) === 'true' ) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -38,7 +38,7 @@
 		);
 
 		// Attach click handlers to prevent navigation.
-		disabledLinks.forEach( function( link ) {
+		disabledLinks.forEach( function ( link ) {
 			link.addEventListener( 'click', handleDisabledClick, true );
 		} );
 	}

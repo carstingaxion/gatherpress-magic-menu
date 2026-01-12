@@ -17,7 +17,7 @@ use GatherPress\Core;
  */
 class Setup {
 
-    use Core\Traits\Singleton;
+	use Core\Traits\Singleton;
 
 	/**
 	 * Constructor.
@@ -57,13 +57,12 @@ class Setup {
 	 * at the end of navigation menus.
 	 *
 	 * @since 0.1.0
-	 * @param array<int, string>                     $hooked_blocks An array of block types hooked to the anchor block.
-	 * @param string                                 $position      The relative position of the hooked blocks.
-	 * @param string|null                            $anchor_block  The anchor block type.
-	 * @param \WP_Block_Template|array<string, mixed> $context       The block template, template part, or pattern context.
+	 * @param array<int, string> $hooked_blocks An array of block types hooked to the anchor block.
+	 * @param string             $position      The relative position of the hooked blocks.
+	 * @param string|null        $anchor_block  The anchor block type.
 	 * @return array<int, string> Modified array of hooked blocks.
 	 */
-	public function hook_block_into_navigation( array $hooked_blocks, string $position, ?string $anchor_block, $context ): array {
+	public function hook_block_into_navigation( array $hooked_blocks, string $position, ?string $anchor_block ): array {
 		// Only hook into core/navigation blocks.
 		if ( 'core/navigation' !== $anchor_block ) {
 			return $hooked_blocks;
@@ -87,8 +86,8 @@ class Setup {
 	 * Clears both upcoming events cache and all taxonomy-specific term caches.
 	 *
 	 * @since 0.1.0
-	 * @param string  $new_status New post status.
-	 * @param string  $old_status Old post status.
+	 * @param string   $new_status New post status.
+	 * @param string   $old_status Old post status.
 	 * @param \WP_Post $post       Post object.
 	 * @return void
 	 */
@@ -117,11 +116,9 @@ class Setup {
 	 * @param array<int, int|string> $terms      An array of object term IDs or slugs.
 	 * @param array<int, int>        $tt_ids     An array of term taxonomy IDs.
 	 * @param string                 $taxonomy   Taxonomy slug.
-	 * @param bool                   $append     Whether to append new terms to the old terms.
-	 * @param array<int, int>        $old_tt_ids Old array of term taxonomy IDs.
 	 * @return void
 	 */
-	public function clear_cache_on_terms_change( int $object_id, array $terms, array $tt_ids, string $taxonomy, bool $append, array $old_tt_ids ): void {
+	public function clear_cache_on_terms_change( int $object_id, array $terms, array $tt_ids, string $taxonomy ): void {
 		// Only process if this is a gatherpress_event post.
 		if ( 'gatherpress_event' !== get_post_type( $object_id ) ) {
 			return;
@@ -153,7 +150,7 @@ class Setup {
 		delete_transient( 'gatherpress_magic_menu_upcoming_events' );
 
 		// Clear all taxonomy-specific term caches.
-		$wpdb->query(
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				$wpdb->esc_like( '_transient_gatherpress_magic_menu_terms_' ) . '%'
@@ -161,7 +158,7 @@ class Setup {
 		);
 
 		// Also clear timeout transients.
-		$wpdb->query(
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
 				$wpdb->esc_like( '_transient_timeout_gatherpress_magic_menu_' ) . '%'

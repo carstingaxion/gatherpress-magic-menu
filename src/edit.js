@@ -11,7 +11,11 @@ import { __ } from '@wordpress/i18n';
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import { useBlockProps, RichText, InspectorControls } from '@wordpress/block-editor';
+import {
+	useBlockProps,
+	RichText,
+	InspectorControls,
+} from '@wordpress/block-editor';
 import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
@@ -32,19 +36,25 @@ import './editor.scss';
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
  *
- * @param {Object}   props               Component props.
- * @param {Object}   props.attributes    Block attributes.
- * @param {string}   props.attributes.label The label text for the navigation link.
+ * @param {Object}   props                                Component props.
+ * @param {Object}   props.attributes                     Block attributes.
+ * @param {string}   props.attributes.label               The label text for the navigation link.
  * @param {string}   props.attributes.gatherpressTaxonomy The selected taxonomy slug.
- * @param {boolean}  props.attributes.showEventCount Whether to show event count.
- * @param {boolean}  props.attributes.showTermEventCount Whether to show event count for term links.
- * @param {Object}   props.context       Block context from parent blocks.
- * @param {string}   props.className     The block's className (includes block style).
- * @param {Function} props.setAttributes Function to update block attributes.
+ * @param {boolean}  props.attributes.showEventCount      Whether to show event count.
+ * @param {boolean}  props.attributes.showTermEventCount  Whether to show event count for term links.
+ * @param {Object}   props.context                        Block context from parent blocks.
+ * @param {string}   props.className                      The block's className (includes block style).
+ * @param {Function} props.setAttributes                  Function to update block attributes.
  * @return {Element} Element to render.
  */
-export default function Edit( { attributes, context, setAttributes, className } ) {
-	const { label, gatherpressTaxonomy, showEventCount, showTermEventCount } = attributes;
+export default function Edit( {
+	attributes,
+	context,
+	setAttributes,
+	className,
+} ) {
+	const { label, gatherpressTaxonomy, showEventCount, showTermEventCount } =
+		attributes;
 
 	/**
 	 * Extract colors from navigation context.
@@ -69,10 +79,12 @@ export default function Edit( { attributes, context, setAttributes, className } 
 	const taxonomies = useSelect( ( select ) => {
 		const { getTaxonomies } = select( coreStore );
 		const allTaxonomies = getTaxonomies( { per_page: -1 } ) || [];
-		
+
 		// Filter to only include taxonomies associated with gatherpress_event
 		return allTaxonomies.filter( ( taxonomy ) => {
-			return taxonomy.types && taxonomy.types.includes( 'gatherpress_event' );
+			return (
+				taxonomy.types && taxonomy.types.includes( 'gatherpress_event' )
+			);
 		} );
 	}, [] );
 
@@ -161,7 +173,9 @@ export default function Edit( { attributes, context, setAttributes, className } 
 
 		// Add background color class if present
 		if ( backgroundColor ) {
-			classes.push( sprintf( 'has-%s-background-color', backgroundColor ) );
+			classes.push(
+				sprintf( 'has-%s-background-color', backgroundColor )
+			);
 			classes.push( 'has-background' );
 		}
 
@@ -182,7 +196,9 @@ export default function Edit( { attributes, context, setAttributes, className } 
 
 		// Add overlay background color class if present
 		if ( overlayBackgroundColor ) {
-			classes.push( sprintf( 'has-%s-background-color', overlayBackgroundColor ) );
+			classes.push(
+				sprintf( 'has-%s-background-color', overlayBackgroundColor )
+			);
 			classes.push( 'has-background' );
 		}
 
@@ -262,8 +278,9 @@ export default function Edit( { attributes, context, setAttributes, className } 
 	 */
 	let labelWithCount = getEffectiveLabel();
 	if ( showEventCount ) {
-		const countSpan = '<span class="gatherpress-magic-menu__count">n</span>';
-		
+		const countSpan =
+			'<span class="gatherpress-magic-menu__count">n</span>';
+
 		// Translatable format string that allows repositioning count and label
 		labelWithCount = sprintf(
 			/* translators: 1: label text, 2: event count HTML */
@@ -335,11 +352,17 @@ export default function Edit( { attributes, context, setAttributes, className } 
 		<>
 			<InspectorControls>
 				<PanelBody
-					title={ __( 'GatherPress Settings', 'gatherpress-magic-menu' ) }
+					title={ __(
+						'GatherPress Settings',
+						'gatherpress-magic-menu'
+					) }
 					initialOpen={ true }
 				>
 					<SelectControl
-						label={ __( 'Filter by Taxonomy', 'gatherpress-magic-menu' ) }
+						label={ __(
+							'Filter by Taxonomy',
+							'gatherpress-magic-menu'
+						) }
 						value={ gatherpressTaxonomy }
 						options={ taxonomyOptions }
 						onChange={ onChangeTaxonomy }
@@ -349,7 +372,10 @@ export default function Edit( { attributes, context, setAttributes, className } 
 						) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Event Count', 'gatherpress-magic-menu' ) }
+						label={ __(
+							'Show Event Count',
+							'gatherpress-magic-menu'
+						) }
 						checked={ showEventCount }
 						onChange={ onChangeShowEventCount }
 						help={ __(
@@ -359,7 +385,10 @@ export default function Edit( { attributes, context, setAttributes, className } 
 					/>
 					{ gatherpressTaxonomy && (
 						<ToggleControl
-							label={ __( 'Show Term Event Count', 'gatherpress-magic-menu' ) }
+							label={ __(
+								'Show Term Event Count',
+								'gatherpress-magic-menu'
+							) }
 							checked={ showTermEventCount }
 							onChange={ onChangeShowTermEventCount }
 							help={ __(
@@ -400,7 +429,10 @@ export default function Edit( { attributes, context, setAttributes, className } 
 					/>
 					{ showEventCount && (
 						<span
-							className={ sprintf( 'gatherpress-magic-menu__count %s', className || '' ) }
+							className={ sprintf(
+								'gatherpress-magic-menu__count %s',
+								className || ''
+							) }
 							dangerouslySetInnerHTML={ {
 								__html: 'n',
 							} }
