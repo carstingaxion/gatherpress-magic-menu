@@ -3,7 +3,7 @@
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * React hook that is used to mark the block wrapper element.
@@ -20,7 +20,6 @@ import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { store as coreStore } from '@wordpress/core-data';
 import { useMemo } from '@wordpress/element';
-import { sprintf } from '@wordpress/i18n';
 
 /**
  * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
@@ -36,15 +35,11 @@ import './editor.scss';
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
  *
- * @param {Object}   props                                Component props.
- * @param {Object}   props.attributes                     Block attributes.
- * @param {string}   props.attributes.label               The label text for the navigation link.
- * @param {string}   props.attributes.gatherpressTaxonomy The selected taxonomy slug.
- * @param {boolean}  props.attributes.showEventCount      Whether to show event count.
- * @param {boolean}  props.attributes.showTermEventCount  Whether to show event count for term links.
- * @param {Object}   props.context                        Block context from parent blocks.
- * @param {string}   props.className                      The block's className (includes block style).
- * @param {Function} props.setAttributes                  Function to update block attributes.
+ * @param {Object}   props               - Component props.
+ * @param {Object}   props.attributes    - Block attributes containing:
+ * @param {Function} props.setAttributes - Function to update block attributes.
+ * @param {Object}   props.context       - Context from parent blocks, including:
+ * @param {string}   props.className     - The block's className.
  * @return {Element} Element to render.
  */
 export default function Edit( {
@@ -329,6 +324,7 @@ export default function Edit( {
 							key={ index }
 							className="wp-block-navigation-item wp-block-navigation-link"
 						>
+							{ /* eslint-disable-next-line jsx-a11y/anchor-is-valid */ }
 							<a
 								className={ overlayClasses }
 								style={ overlayStyles }
