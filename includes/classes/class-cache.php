@@ -52,6 +52,11 @@ if ( ! class_exists( 'Cache' ) ) {
 			$cache_key     = 'gatherpress_magic_menu_upcoming_events';
 			$cached_events = get_transient( $cache_key );
 
+			/**
+			 * This is for sure an array of int or empty.
+			 * 
+			 * @var array<int, int>|false $cached_events
+			 */
 			if ( is_array( $cached_events ) ) {
 				return $cached_events;
 			}
@@ -68,6 +73,11 @@ if ( ! class_exists( 'Cache' ) ) {
 					'update_post_term_cache'  => false,
 				)
 			);
+			/**
+			 * The $events->posts is for sure an array of int or empty, because of 'fields' => 'ids'.
+			 * 
+			 * @var array<int, int> $events
+			 */
 			$events = ! empty( $events->posts ) ? $events->posts : array();
 
 			set_transient( $cache_key, $events, self::CACHE_EXPIRY );
@@ -86,12 +96,17 @@ if ( ! class_exists( 'Cache' ) ) {
 		 * @since 0.1.0
 		 * @param string          $taxonomy_slug    The taxonomy slug.
 		 * @param array<int, int> $upcoming_event_ids Array of event post IDs.
-		 * @return array<int, array<string, mixed>> Array of associative arrays with 'term_id', 'name', and 'count' keys.
+		 * @return array<int, array<string, string|int>> Array of associative arrays with 'term_id', 'name', and 'count' keys.
 		 */
 		public function get_terms_with_event_counts( string $taxonomy_slug, array $upcoming_event_ids ): array {
 			$cache_key    = 'gatherpress_magic_menu_terms_' . $taxonomy_slug;
 			$cached_terms = get_transient( $cache_key );
 
+			/**
+			 * This is for sure an array of arrays or empty.
+			 * 
+			 * @var array<int, array<string, string|int>>|false $cached_terms
+			 */
 			if ( is_array( $cached_terms ) ) {
 				return $cached_terms;
 			}
@@ -104,6 +119,7 @@ if ( ! class_exists( 'Cache' ) ) {
 				return $empty_array;
 			}
 
+			// @phpstan-ignore-next-line -- get_terms() is strangely marked as internal function in phpstan.
 			$terms = get_terms(
 				array(
 					'taxonomy'   => $taxonomy_slug,
@@ -114,7 +130,7 @@ if ( ! class_exists( 'Cache' ) ) {
 				)
 			);
 
-			if ( is_wp_error( $terms ) || empty( $terms ) || ! is_array( $terms ) ) {
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
 				$empty_array = array();
 				set_transient( $cache_key, $empty_array, self::CACHE_EXPIRY );
 				return $empty_array;
@@ -123,7 +139,8 @@ if ( ! class_exists( 'Cache' ) ) {
 			// Build minimal data structure with pre-calculated counts.
 			$terms_data = array();
 			foreach ( $terms as $term ) {
-				$count        = $this->count_events_for_term( $term->term_id, $taxonomy_slug, $upcoming_event_ids );
+				$count = $this->count_events_for_term( $term->term_id, $taxonomy_slug, $upcoming_event_ids );
+
 				$terms_data[] = array(
 					'term_id' => $term->term_id,
 					'name'    => $term->name,
@@ -262,12 +279,19 @@ if ( ! class_exists( 'Cache' ) ) {
 			$timeout_pattern   = $wpdb->esc_like( '_transient_timeout_gatherpress_magic_menu_' ) . '%';
 	
 			// Prepare SQL statement.
+			$prepared_sql = $wpdb->prepare(
+				// @phpstan-ignore-next-line
+				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+				$transient_pattern,
+				$timeout_pattern
+			);
+
+			if ( ! is_string( $prepared_sql ) ) {
+				return;
+			}
+
 			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$wpdb->prepare(
-					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-					$transient_pattern,
-					$timeout_pattern
-				)
+				$prepared_sql
 			);
 		}
 	}

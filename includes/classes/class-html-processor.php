@@ -203,6 +203,7 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 		 * @return array<string, string> Array with 'class' and 'style' keys for the container.
 		 */
 		public function apply_overlay_colors_to_container( \WP_Block $submenu_block ): array {
+			/** @var array<string, mixed> $attributes */
 			$attributes = $submenu_block->attributes;
 
 			// Copy overlay colors from context to attributes (like core does).
@@ -213,19 +214,19 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 				$attributes['backgroundColor'] = $submenu_block->context['overlayBackgroundColor'];
 			}
 			if ( array_key_exists( 'customOverlayTextColor', $submenu_block->context ) ) {
-				if ( ! isset( $attributes['style'] ) ) {
+				if ( ! isset( $attributes['style'] ) || ! is_array( $attributes['style'] ) ) {
 					$attributes['style'] = array();
 				}
-				if ( ! isset( $attributes['style']['color'] ) ) {
+				if ( ! isset( $attributes['style']['color'] ) || ! is_array( $attributes['style']['color'] ) ) {
 					$attributes['style']['color'] = array();
 				}
 				$attributes['style']['color']['text'] = $submenu_block->context['customOverlayTextColor'];
 			}
 			if ( array_key_exists( 'customOverlayBackgroundColor', $submenu_block->context ) ) {
-				if ( ! isset( $attributes['style'] ) ) {
+				if ( ! isset( $attributes['style'] ) || ! is_array( $attributes['style'] ) ) {
 					$attributes['style'] = array();
 				}
-				if ( ! isset( $attributes['style']['color'] ) ) {
+				if ( ! isset( $attributes['style']['color'] ) || ! is_array( $attributes['style']['color'] ) ) {
 					$attributes['style']['color'] = array();
 				}
 				$attributes['style']['color']['background'] = $submenu_block->context['customOverlayBackgroundColor'];
@@ -233,7 +234,8 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 
 			// Temporarily enable color support to get wp_apply_colors_support to work.
 			$submenu_block->block_type->supports['color'] = true;
-			$colors_support                               = wp_apply_colors_support( $submenu_block->block_type, $attributes );
+			/** @var array{class?: string, style?: string} $colors_support */
+			$colors_support = wp_apply_colors_support( $submenu_block->block_type, $attributes );
 
 			$result = array(
 				'class' => '',

@@ -170,7 +170,6 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 
 - [ ] Cache Invalidation Granularity: Currently, changing any event clears ALL taxonomy caches. Consider invalidating only the specific taxonomy caches that are actually affected by the changed event.
 
-- [ ] Query Optimization: The count_events_for_term() method loops through all events for each term. Consider using a single WP_Query with taxonomy parameters to get counts more efficiently._
 
 ### User Experience
 

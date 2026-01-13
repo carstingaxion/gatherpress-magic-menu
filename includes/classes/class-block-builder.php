@@ -75,7 +75,14 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 		 * @param string               $label        The link label (may contain HTML).
 		 * @param string               $archive_url  The archive URL.
 		 * @param array<string, mixed> $nav_context  Navigation context including colors and styles.
-		 * @return array<string, mixed>|false The parsed link block or false on failure.
+		 * @return array|false The parsed link block or false on failure.
+		 * @phpstan-return array{
+		 *   blockName?: string,
+		 *   attrs?: array<string, mixed>,
+		 *   innerBlocks?: array<int, array<string, mixed>>,
+		 *   innerHTML?: string,
+		 *   innerContent?: array<int, string|null>,
+		 * }|false
 		 */
 		public function create_link_block( string $label, string $archive_url, array $nav_context ) {
 			$link_attrs = array(
@@ -109,7 +116,14 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 		 * @param string               $label        The submenu label (may contain HTML).
 		 * @param string               $archive_url  The archive URL.
 		 * @param array<string, mixed> $nav_context  Navigation context including colors, styles, and showSubmenuIcon.
-		 * @return array<string, mixed>|false The parsed submenu block or false on failure.
+		 * @return array|false The parsed submenu block or false on failure.
+		 * @phpstan-return array{
+		 *   blockName?: string,
+		 *   attrs?: array<string, mixed>,
+		 *   innerBlocks?: array<int, array<string, mixed>>,
+		 *   innerHTML?: string,
+		 *   innerContent?: array<int, string|null>,
+		 * }|false
 		 */
 		public function create_submenu_block( string $label, string $archive_url, array $nav_context ) {
 			$submenu_attrs = array(
@@ -155,7 +169,7 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 			$formatter = Label_Formatter::get_instance();
 
 			foreach ( $terms_data as $term_info ) {
-				if ( ! is_array( $term_info ) || ! isset( $term_info['term_id'], $term_info['name'], $term_info['count'] ) ) {
+				if ( ! isset( $term_info['term_id'], $term_info['name'], $term_info['count'] ) ) {
 					continue;
 				}
 
@@ -215,10 +229,10 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 			}
 
 			if ( ! empty( $nav_context['customFontSize'] ) && is_string( $nav_context['customFontSize'] ) ) {
-				if ( ! isset( $attrs['style'] ) ) {
+				if ( ! isset( $attrs['style'] ) || ! is_array( $attrs['style'] ) ) {
 					$attrs['style'] = array();
 				}
-				if ( ! isset( $attrs['style']['typography'] ) ) {
+				if ( ! isset( $attrs['style']['typography'] ) || ! is_array( $attrs['style']['typography'] ) ) {
 					$attrs['style']['typography'] = array();
 				}
 				$attrs['style']['typography']['fontSize'] = $nav_context['customFontSize'];
@@ -244,10 +258,10 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				$attrs['textColor'] = $nav_context['overlayTextColor'];
 			}
 			if ( ! empty( $nav_context['customOverlayTextColor'] ) && is_string( $nav_context['customOverlayTextColor'] ) ) {
-				if ( ! isset( $attrs['style'] ) ) {
+				if ( ! isset( $attrs['style'] ) || ! is_array( $attrs['style'] ) ) {
 					$attrs['style'] = array();
 				}
-				if ( ! isset( $attrs['style']['color'] ) ) {
+				if ( ! isset( $attrs['style']['color'] ) || ! is_array( $attrs['style']['color'] ) ) {
 					$attrs['style']['color'] = array();
 				}
 				$attrs['style']['color']['text'] = $nav_context['customOverlayTextColor'];
@@ -256,10 +270,10 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				$attrs['backgroundColor'] = $nav_context['overlayBackgroundColor'];
 			}
 			if ( ! empty( $nav_context['customOverlayBackgroundColor'] ) && is_string( $nav_context['customOverlayBackgroundColor'] ) ) {
-				if ( ! isset( $attrs['style'] ) ) {
+				if ( ! isset( $attrs['style'] ) || ! is_array( $attrs['style'] ) ) {
 					$attrs['style'] = array();
 				}
-				if ( ! isset( $attrs['style']['color'] ) ) {
+				if ( ! isset( $attrs['style']['color'] ) || ! is_array( $attrs['style']['color'] ) ) {
 					$attrs['style']['color'] = array();
 				}
 				$attrs['style']['color']['background'] = $nav_context['customOverlayBackgroundColor'];
