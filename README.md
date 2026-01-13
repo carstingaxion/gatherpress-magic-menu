@@ -166,10 +166,6 @@ The block shows all taxonomies registered with the `gatherpress_event` post type
 
 Submenus are one level deep. Each term in the selected taxonomy becomes a submenu item. Nested term hierarchies are flattened.
 
-### What defines an "upcoming event"?
-
-The block uses GatherPress's built-in 'upcoming' event query parameter, which respects GatherPress's event date logic.
-
 ### Can I use multiple instances?
 
 Yes. You can add multiple GatherPress Magic Menu blocks to the same or different navigation menus, each configured differently.
@@ -214,7 +210,7 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 
 1. Upload plugin files to `/wp-content/plugins/gatherpress-magic-menu/` or install via WordPress plugins screen
 2. Activate the plugin
-3. The block hooks itself into core/navigation blocks
+3. The block hooks itself into `core/navigation` blocks
 5. Open the site editor, select your Navigation block, and find "GatherPress Magic Menu" already in place
 6. Configure the block settings in the sidebar
 
