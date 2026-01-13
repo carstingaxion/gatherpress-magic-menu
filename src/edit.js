@@ -267,23 +267,23 @@ export default function Edit( {
 			: 'wp-block-navigation-item wp-block-navigation-link',
 	} );
 
-	/**
-	 * Build the event count element with proper i18n using sprintf.
-	 * Allows translators to control the position of count and label.
-	 */
-	let labelWithCount = getEffectiveLabel();
-	if ( showEventCount ) {
-		const countSpan =
-			'<span class="gatherpress-magic-menu__count">n</span>';
+	// /**
+	//  * Build the event count element with proper i18n using sprintf.
+	//  * Allows translators to control the position of count and label.
+	//  */
+	// let labelWithCount = getEffectiveLabel();
+	// if ( showEventCount ) {
+	// 	const countSpan =
+	// 		'<span class="gatherpress-magic-menu__count">n</span>';
 
-		// Translatable format string that allows repositioning count and label
-		labelWithCount = sprintf(
-			/* translators: 1: label text, 2: event count HTML */
-			__( '%1$s %2$s', 'gatherpress-magic-menu' ),
-			getEffectiveLabel(),
-			countSpan
-		);
-	}
+	// 	// Translatable format string that allows repositioning count and label
+	// 	labelWithCount = sprintf(
+	// 		/* translators: 1: label text, 2: event count HTML */
+	// 		__( '%1$s %2$s', 'gatherpress-magic-menu' ),
+	// 		getEffectiveLabel(),
+	// 		countSpan
+	// 	);
+	// }
 
 	/**
 	 * Renders the placeholder submenu when a taxonomy is selected.

@@ -123,10 +123,6 @@ if ( ! class_exists( 'Cache' ) ) {
 			// Build minimal data structure with pre-calculated counts.
 			$terms_data = array();
 			foreach ( $terms as $term ) {
-				// if ( ! $term instanceof \WP_Term ) {
-				// 	continue;
-				// }
-
 				$count        = $this->count_events_for_term( $term->term_id, $taxonomy_slug, $upcoming_event_ids );
 				$terms_data[] = array(
 					'term_id' => $term->term_id,
@@ -255,6 +251,8 @@ if ( ! class_exists( 'Cache' ) ) {
 		 */
 		public function clear_all_caches(): void {
 			/**
+			 * Help phpstan understand $wpdb is global.
+			 * 
 			 * @var \wpdb  $wpdb WordPress database abstraction object.
 			 */
 			global $wpdb;
@@ -264,10 +262,9 @@ if ( ! class_exists( 'Cache' ) ) {
 			$timeout_pattern   = $wpdb->esc_like( '_transient_timeout_gatherpress_magic_menu_' ) . '%';
 	
 			// Prepare SQL statement.
-			$table = $wpdb->options;
 			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 				$wpdb->prepare(
-					"DELETE FROM {$table} WHERE option_name LIKE %s OR option_name LIKE %s",
+					"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
 					$transient_pattern,
 					$timeout_pattern
 				)

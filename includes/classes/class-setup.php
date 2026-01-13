@@ -30,7 +30,7 @@ class Setup {
 	private function __construct() {
 		add_action( 'init', array( $this, 'register_block' ) );
 		add_filter( 'hooked_block_types', array( $this, 'hook_block_into_navigation' ), 10, 3 );
-		// Load on every plugin load
+		// Load on every plugin load.
 		Cache::get_instance();
 	}
 

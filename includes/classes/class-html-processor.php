@@ -268,6 +268,8 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 				)
 			) ) {
 				$processor->set_attribute( 'aria-disabled', 'true' );
+				$processor->set_attribute( 'aria-label', __( 'No upcoming events available', 'gatherpress-magic-menu' ) );
+
 			}
 
 			return $processor->get_updated_html();

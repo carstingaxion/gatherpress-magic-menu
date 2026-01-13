@@ -25,25 +25,6 @@
 	}
 }
 
-/**
- * Modifier: Disabled State
- * Applied when there are no upcoming events.
- */
-.gatherpress-magic-menu--disabled {
-
-	a[aria-disabled="true"] {
-		opacity: 0.5;
-		cursor: not-allowed;
-		pointer-events: none;
-		text-decoration: none;
-
-		&:hover,
-		&:focus {
-			text-decoration: none;
-			color: inherit;
-		}
-	}
-}
 
 /**
  * Element: Event Count
@@ -131,7 +112,8 @@
  * An eye-catching, energetic design with rotation and vibrant styling.
  */
 .is-style-starburst {
-
+	/* stylelint-disable-next-line @stylistic/max-line-length */
+	/* stylelint-disable-next-line no-descending-specificity -- Stylelint is complaining for no reasons, I guess. */
 	.gatherpress-magic-menu__count {
 		display: inline-flex;
 		align-items: center;
@@ -178,33 +160,37 @@
 }
 
 /**
- * Submenu Spacing
- * Ensure proper spacing for counts in submenus.
- */
-.wp-block-navigation-submenu {
-
-	.gatherpress-magic-menu__count {
-		// margin-left: auto;
-		// margin-right: 0;
-	}
-}
-
-/**
- * Disabled State Adjustments
- * Remove effects when the link is disabled.
+* Modifier: Disabled State
+* Applied when there are no upcoming events.
+* Remove effects when the link is disabled.
  */
 .gatherpress-magic-menu--disabled {
 
+	a[aria-disabled="true"] {
+		opacity: 0.5;
+		cursor: not-allowed;
+		pointer-events: none;
+		text-decoration: none;
+
+		&:hover,
+		&:focus {
+			text-decoration: none;
+			color: inherit;
+		}
+	}
+
 	.is-style-badge,
 	.is-style-starburst {
-
+		/* stylelint-disable-next-line @stylistic/max-line-length */
+		/* stylelint-disable-next-line no-descending-specificity -- Stylelint is complaining for no reasons, I guess. */
 		.gatherpress-magic-menu__count {
 			opacity: 0.5;
 			box-shadow: none;
 			transform: none;
 		}
 	}
-
+	/* stylelint-disable-next-line @stylistic/max-line-length */
+	/* stylelint-disable-next-line no-descending-specificity -- Stylelint is complaining for no reasons, I guess. */
 	.gatherpress-magic-menu__count {
 		opacity: 0.5;
 	}

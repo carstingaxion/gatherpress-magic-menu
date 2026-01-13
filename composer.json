@@ -1,6 +1,6 @@
 {
     "name": "carstingaxion/gatherpress-magic-menu",
-    "description": "",
+    "description": "A navigation block that creates a dynamic GatherPress menu, with taxonomy-based submenus and upcoming event counters.",
     "license": "GPL-3.0+",
     "type": "wordpress-plugin",
     "keywords": [
