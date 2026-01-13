@@ -21,10 +21,10 @@ The block integrates with WordPress's native Navigation block and inherits its s
 
 ![](.wordpress-org/screenshot-8.png)
 
-
 |![](.wordpress-org/screenshot-1.png)|![](.wordpress-org/screenshot-2.png)|![](.wordpress-org/screenshot-6.png)|
 |---|---|---|
 |![](.wordpress-org/screenshot-4.png)|![](.wordpress-org/screenshot-5.png)|![](.wordpress-org/screenshot-7.png)|
+
 **Core Features:**
 
 * Links to the GatherPress events post type archive
