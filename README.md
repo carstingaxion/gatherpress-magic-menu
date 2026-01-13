@@ -37,7 +37,15 @@ The block integrates with WordPress's native Navigation block and inherits its s
     - starburst ⓬
 * Optional: taxonomy-based submenus (one level deep)
 * Automatic cache management (7-day expiry, invalidated on event changes)
-* Works only inside Navigation blocks (`parent: core/navigation`)
+* Works only inside Navigation blocks
+* Clean-up on plugin deactivation
+
+**Block Structure:**
+* uses WordPress' core **Block Hooks API** for automated setup after plugin activation
+* Parent block: `core/navigation`
+* Renders as: `core/navigation-link` or `core/navigation-submenu` depending on the block settings
+* Inherits navigation block styling
+* uses WordPress' core **HTML Processor API** for attribute manipulation
 
 **Event Counting:**
 
@@ -54,12 +62,6 @@ The block integrates with WordPress's native Navigation block and inherits its s
   - Event post status changes to/from 'publish'
   - Terms are assigned to or removed from events
 
-**Block Structure:**
-
-* Parent block: `core/navigation`
-* Renders as: `core/navigation-link` or `core/navigation-submenu` depending on the block settings
-* Inherits navigation block styling
-* uses WordPress' core **HTML Processor API** for attribute manipulation
 
 ## Usage Examples
 
