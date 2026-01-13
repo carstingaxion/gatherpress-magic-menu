@@ -19,6 +19,12 @@ The GatherPress Magic Menu block adds a navigation item to your site's navigatio
 
 The block integrates with WordPress's native Navigation block and inherits its styling. It includes performance optimizations through transient caching and automatic cache invalidation when events are published, unpublished, or their taxonomy terms change.
 
+![](.wordpress-org/screenshot-8.png)
+
+
+|![](.wordpress-org/screenshot-1.png)|![](.wordpress-org/screenshot-2.png)|![](.wordpress-org/screenshot-6.png)|
+|---|---|---|
+|![](.wordpress-org/screenshot-4.png)|![](.wordpress-org/screenshot-5.png)|![](.wordpress-org/screenshot-7.png)|
 **Core Features:**
 
 * Links to the GatherPress events post type archive
@@ -60,6 +66,10 @@ The block integrates with WordPress's native Navigation block and inherits its s
 <details>
 <summary>Example 1: Simple Events Link</summary>
 
+| with Events | without Events   |
+|---|---|
+| ![](.wordpress-org/screenshot-1.png) | ![](.wordpress-org/screenshot-2.png) |
+
 Add the block to your navigation with no taxonomy selected. This creates a single link to your events archive with a disabled state when no upcoming events exist.
 
 **Settings:** (100% default)
@@ -74,6 +84,8 @@ Add the block to your navigation with no taxonomy selected. This creates a singl
 
 <details>
 <summary>Example 2: upcoming Event Topics incl. counter</summary>
+
+ ![](.wordpress-org/screenshot-6.png)
 
 Create a submenu from GatherPress Topics terms of the upcoming events.
 
@@ -95,6 +107,8 @@ Create a submenu from GatherPress Topics terms of the upcoming events.
 <details>
 <summary>Example 3: upcoming Event Venues</summary>
 
+ ![](.wordpress-org/screenshot-7.png)
+
 Create a submenu from GatherPress Venues of the upcoming events.
 
 **Settings:**
@@ -114,6 +128,10 @@ Create a submenu from GatherPress Venues of the upcoming events.
 
 <details>
 <summary>Example 4: Styled Event Counts</summary>
+
+| default | badge  | starburst |
+|---|---|---|
+| ![](.wordpress-org/screenshot-3.png) | ![](.wordpress-org/screenshot-4.png) | ![](.wordpress-org/screenshot-5.png) |
 
 Use block styles to visually emphasize event counts. The "badge" block style displays the count as a small notification indicator, while "starburst" uses a more prominent circular design.
 
