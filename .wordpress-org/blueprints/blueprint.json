@@ -1,6 +1,6 @@
 {
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
-  "landingPage": "/wp-admin/post.php?post=4&action=edit",
+  "landingPage": "/",
   "preferredVersions": {
     "php": "8.2",
     "wp": "latest"
@@ -27,13 +27,6 @@
     {
       "step": "runPHP",
       "code": "<?php require '/wordpress/wp-load.php'; $user_id = wp_create_user('editor', 'editorpass', 'editor@localhost.test'); (new WP_User($user_id))->set_role('editor');"
-    },
-    {
-      "step": "runPHP",
-      "code": "<?php require_once '/wordpress/wp-load.php';\n$page_args = array(\n'post_type'    => 'page',\n'post_status'  => 'publish',\n'post_title'   => 'Testing GatherPress Magic Menu',\n'post_content' => ' .....  ',\n);\n$page_id = wp_insert_post( $page_args, true );\nif ( is_wp_error( $page_id ) ) {\nerror_log( 'addPage error: ' . $page_id->get_error_message() );\n}",
-      "progress": {
-        "caption": "Crafting a GatherPress Magic Menu Demo Page"
-      }
     },
     {
       "step": "login",
@@ -68,6 +61,13 @@
       },
       "progress": {
         "caption": "Installing plugin from GitHub: carstingaxion/gatherpress-magic-menu"
+      }
+    },
+    {
+      "step": "importWxr",
+      "file": {
+        "resource": "url",
+        "url": "https://raw.githubusercontent.com/GatherPress/gatherpress-demo-data/main/GatherPress-demo-data-0.33.0.xml"
       }
     }
   ]
