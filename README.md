@@ -15,7 +15,7 @@ A navigation block that creates a dynamic GatherPress menu, with taxonomy-based 
 
 ## Description
 
-The GatherPress Magic Menu block adds a navigation item to your site's navigation that links to your events archive. It can optionally create submenus based on GatherPress taxonomies (Topics, Venues, or custom taxonomies), with each term becoming a submenu item.
+The GatherPress Magic Menu block adds a navigation item to your site's navigation that links to your events archive. It can optionally create submenus based on GatherPress taxonomy terms of the upcoming events (Topics, Venues, or custom taxonomies), with each term becoming a submenu item.
 
 The block integrates with WordPress's native Navigation block and inherits its styling. It includes performance optimizations through transient caching and automatic cache invalidation when events are published, unpublished, or their taxonomy terms change.
 
@@ -23,6 +23,7 @@ The block integrates with WordPress's native Navigation block and inherits its s
 
 * Links to the GatherPress events post type archive
 * Prevents navigation to archive when no upcoming events exist
+* Customizable Link-Text, if unset uses translated post type plural from GatherPress core (translated into 11 languages already)
 * Optional: Display upcoming event counts next to labels
 * Three visual styles for event count display:
     - default (12)
@@ -30,7 +31,7 @@ The block integrates with WordPress's native Navigation block and inherits its s
     - starburst ⓬
 * Optional: taxonomy-based submenus (one level deep)
 * Automatic cache management (7-day expiry, invalidated on event changes)
-* Works only inside Navigation blocks (parent: core/navigation)
+* Works only inside Navigation blocks (`parent: core/navigation`)
 
 **Event Counting:**
 
