@@ -6,7 +6,7 @@
   "title": "GatherPress Magic Menu",
   "category": "widgets",
   "icon": "calendar-alt",
-  "description": "A navigation link that dynamically links to the GatherPress events archive",
+  "description": "A navigation block that creates a dynamic GatherPress menu, with taxonomy-based submenus and upcoming event counters.",
   "keywords": [
     "navigation",
     "gatherpress",

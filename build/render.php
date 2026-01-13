@@ -1,7 +1,4 @@
 <?php
-
-namespace GatherPress_Magic_Menu;
-
 /**
  * Render callback for the GatherPress Magic Menu block.
  *
@@ -22,7 +19,21 @@ namespace GatherPress_Magic_Menu;
  * @param \WP_Block             $block      Block instance.
  */
 
+namespace GatherPress_Magic_Menu;
+
 defined( 'ABSPATH' ) || exit;
 
-$renderer = Renderer::get_instance();
-echo $renderer->render( $attributes, $content, $block );
+/**
+ * Extract and sanitize block attributes.
+ *
+ * @var array{
+ *   label?: string,
+ *   gatherpressTaxonomy?: string,
+ *   showEventCount?: bool,
+ *   showTermEventCount?: bool,
+ * } $attributes
+ * @var string $content
+ * @var \WP_Block $block
+ */
+$gatherpress_magic_menu_renderer = Renderer::get_instance();
+echo $gatherpress_magic_menu_renderer->render( $attributes, $content, $block ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
