@@ -173,8 +173,10 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				if ( ! is_int( $term_info['term_id'] ) || ! is_string( $term_info['name'] ) || ! is_int( $term_info['count'] ) ) {
 					continue;
 				}
-
+				
+				add_filter( 'term_link', array( $this, 'term_link' ), 10, 3 );
 				$term_link = get_term_link( $term_info['term_id'], $taxonomy_slug );
+				remove_filter( 'term_link', array( $this, 'term_link' ), 10 );
 
 				if ( is_wp_error( $term_link ) ) {
 					continue;
@@ -217,6 +219,34 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 
 			return $submenu_block;
 		}
+
+		/**
+		 * Filters the term link.
+		 *
+		 * Takes the term slug of a '_gatherpress-venue' term
+		 * and returns its related 'gatherpress-venue' post permalink.
+		 *
+		 * @param string   $termlink Term link URL.
+		 * @param \WP_Term $term     Term object.
+		 * @param string   $taxonomy Taxonomy slug.
+		 * @return string Term link URL.
+		 */
+		public function term_link( string $termlink, \WP_Term $term, string $taxonomy ): string {
+			if ( '_gatherpress_venue' !== $taxonomy ) {
+				return $termlink;
+			}
+
+			// TODO: An Online-Event will have no Venue; prevent error on non-existent object.
+			$gatherpress_venue = Core\Venue::get_instance()->get_venue_post_from_term_slug( $term->slug );
+
+			if ( $gatherpress_venue instanceof \WP_Post ) {
+				$postlink = get_permalink( $gatherpress_venue );
+				return $postlink;
+			}
+
+			return $termlink;
+		}
+
 
 		/**
 		 * Applies navigation context to block attributes.

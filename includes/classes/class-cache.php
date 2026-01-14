@@ -54,7 +54,7 @@ if ( ! class_exists( 'Cache' ) ) {
 		 * @return array<int, int> Array of event post IDs.
 		 */
 		public function get_upcoming_events(): array {
-			$cache_key     = 'gatherpress_magic_menu_upcoming_events';
+			$cache_key = 'gatherpress_magic_menu_upcoming_events';
 			/**
 			 * Short circuit the query.
 			 *
