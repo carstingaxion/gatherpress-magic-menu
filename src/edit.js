@@ -244,7 +244,7 @@ export default function Edit( {
 	 * Prepare taxonomy options for the SelectControl.
 	 */
 	const taxonomyOptions = [
-		{ label: __( 'All Events', 'gatherpress-magic-menu' ), value: '' },
+		{ label: __( 'None', 'gatherpress-magic-menu' ), value: '' },
 	];
 
 	if ( taxonomies ) {
@@ -296,7 +296,7 @@ export default function Edit( {
 		// Example term names for placeholder
 		const exampleTerms = [
 			__( 'Example Term 1', 'gatherpress-magic-menu' ),
-			__( 'Example Term 2', 'gatherpress-magic-menu' ),
+			__( 'Sample Term 2', 'gatherpress-magic-menu' ),
 		];
 
 		return (
@@ -349,21 +349,21 @@ export default function Edit( {
 			<InspectorControls>
 				<PanelBody
 					title={ __(
-						'GatherPress Settings',
-						'gatherpress-magic-menu'
+						'Settings',
+						'default'
 					) }
 					initialOpen={ true }
 				>
 					<SelectControl
 						label={ __(
-							'Filter by Taxonomy',
+							'Select Taxonomy for Submenu',
 							'gatherpress-magic-menu'
 						) }
 						value={ gatherpressTaxonomy }
 						options={ taxonomyOptions }
 						onChange={ onChangeTaxonomy }
 						help={ __(
-							'Select a taxonomy to filter events, or leave as "All Events" for the main archive.',
+							'Select a taxonomy to show its terms, of upcoming events only, as an auto-generated submenu. Or leave as "None" to not create a submenu.',
 							'gatherpress-magic-menu'
 						) }
 					/>

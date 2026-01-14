@@ -5,7 +5,7 @@
 **Tested up to:**      6.8  
 **Stable tag:**        0.1.0  
 **License:**           GPLv2 or later  
-**License URI:**       https://www.gnu.org/licenses/gpl-2.0.html  
+**License URI:**       <https://www.gnu.org/licenses/gpl-2.0.html>  
 
 A navigation block that creates a dynamic GatherPress menu, with taxonomy-based submenus and upcoming event counters.
 
@@ -32,15 +32,16 @@ The block integrates with WordPress's native Navigation block and inherits its s
 * Customizable Link-Text, if unset uses translated post type plural from GatherPress core (translated into 11 languages already)
 * Optional: Display upcoming event counts next to labels
 * Three visual styles for event count display:
-    - default (12)
-    - badge<sup>⓬</sup>
-    - starburst ⓬
+    * default (12)
+    * badge<sup>⓬</sup>
+    * starburst ⓬
 * Optional: taxonomy-based submenus (one level deep)
 * Automatic cache management (7-day expiry, invalidated on event changes)
 * Works only inside Navigation blocks
 * Clean-up on plugin deactivation
 
 **Block Structure:**
+
 * uses WordPress' core **Block Hooks API** for automated setup after plugin activation
 * Parent block: `core/navigation`
 * Renders as: `core/navigation-link` or `core/navigation-submenu` depending on the block settings
@@ -59,8 +60,8 @@ The block integrates with WordPress's native Navigation block and inherits its s
 * Upcoming events query results cached for 7 days
 * Taxonomy term data cached separately per taxonomy
 * Caches cleared when:
-  - Event post status changes to/from 'publish'
-  - Terms are assigned to or removed from events
+    * Event post status changes to/from 'publish'
+    * Terms are assigned to or removed from events
 
 
 ## Usage Examples
@@ -75,7 +76,8 @@ The block integrates with WordPress's native Navigation block and inherits its s
 Add the block to your navigation with no taxonomy selected. This creates a single link to your events archive with a disabled state when no upcoming events exist.
 
 **Settings:** (100% default)
-- Filter by Taxonomy: All Events
+
+* Filter by Taxonomy: All Events
 
 **Result:** "Events" linking to your events archive or showing as disabled link.
 
@@ -92,15 +94,17 @@ Add the block to your navigation with no taxonomy selected. This creates a singl
 Create a submenu from GatherPress Topics terms of the upcoming events.
 
 **Settings:**
-- Filter by Taxonomy: Topics
-- Show Event Count: Enabled (shows total for main link)
-- Show Term Event Count: Enabled (shows count per topic)
+
+* Filter by Taxonomy: Topics
+* Show Event Count: Enabled (shows total for main link)
+* Show Term Event Count: Enabled (shows count per topic)
 
 **Result:**
-- Events (12)
-  - Code Review (3)
-  - Social Meetup (5)
-  - Workshop (4)
+
+* Events (12)
+    * Code Review (3)
+    * Social Meetup (5)
+    * Workshop (4)
 
 ---
 
@@ -114,15 +118,17 @@ Create a submenu from GatherPress Topics terms of the upcoming events.
 Create a submenu from GatherPress Venues of the upcoming events.
 
 **Settings:**
-- Filter by Taxonomy: Venues
-- Show Event Count: Disabled
-- Show Term Event Count: Disabled
+
+* Filter by Taxonomy: Venues
+* Show Event Count: Disabled
+* Show Term Event Count: Disabled
 
 **Result:**
-- Events
-  - Community Center
-  - Downtown Library
-  - Online
+
+* Events
+    * Community Center
+    * Downtown Library
+    * Online
 
 ---
 
@@ -138,11 +144,13 @@ Create a submenu from GatherPress Venues of the upcoming events.
 Use block styles to visually emphasize event counts. The "badge" block style displays the count as a small notification indicator, while "starburst" uses a more prominent circular design.
 
 **Settings:**
-- Show Event Count: Enabled
-- Block Style: Badge
+
+* Show Event Count: Enabled
+* Block Style: Badge
 
 **Result:**
-- Events <sup>⓬</sup>
+
+* Events <sup>⓬</sup>
 
 ---
 
@@ -173,8 +181,9 @@ Yes. You can add multiple GatherPress Magic Menu blocks to the same or different
 ### How often do event counts update?
 
 Caches expire after 7 days but are automatically cleared when:
-- An event is published or unpublished  
-- Terms are added to or removed from events
+
+* An event is published or unpublished  
+* Terms are added to or removed from events
 
 ### Can I clear the cache manually?
 
@@ -185,25 +194,25 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 
 ### Performance & Caching
 
-- [ ] Cache Invalidation Granularity: Currently, changing any event clears ALL taxonomy caches. Consider invalidating only the specific taxonomy caches that are actually affected by the changed event.
+* [ ] Cache Invalidation Granularity: Currently, changing any event clears ALL taxonomy caches. Consider invalidating only the specific taxonomy caches that are actually affected by the changed event.
 
 
 ### User Experience
 
-- [ ] Block Preview: Add a more realistic preview in the editor that shows actual term names (not just placeholders) when a taxonomy is selected, so editors can see what will render.
-- [ ] Empty State Messaging: When no upcoming events exist, consider showing an admin notice in the editor explaining why the link will be disabled.
-- [ ] Taxonomy Validation: Add validation to check if the selected taxonomy still exists/is still registered with gatherpress_event and show a warning if not.
+* [ ] Block Preview: Add a more realistic preview in the editor that shows actual term names (not just placeholders) when a taxonomy is selected, so editors can see what will render.
+* [ ] Empty State Messaging: When no upcoming events exist, consider showing an admin notice in the editor explaining why the link will be disabled.
+* [ ] Taxonomy Validation: Add validation to check if the selected taxonomy still exists/is still registered with gatherpress_event and show a warning if not.
 
 ### Features
 
-- [ ] Term Ordering: Add options for custom term ordering (alphabetical, by event count, by term order).
-- [ ] Maximum Terms: Add option to limit the number of terms shown (with a "View All" link if needed).
-- [ ] Hierarchical Terms: If taxonomies support hierarchical terms, add support for nested submenus.
+* [ ] Term Ordering: Add options for custom term ordering (alphabetical, by event count, by term order).
+* [ ] Maximum Terms: Add option to limit the number of terms shown (with a "View All" link if needed).
+* [ ] Hierarchical Terms: If taxonomies support hierarchical terms, add support for nested submenus.
 
 ### Testing & Documentation
 
-- [ ] Unit Tests: Add unit tests for the renderer class methods, especially caching logic and count calculations.
-- [ ] Developer Hooks: Expose filter hooks for developers to modify queries, cache keys, or output before rendering.
+* [ ] Unit Tests: Add unit tests for the renderer class methods, especially caching logic and count calculations.
+* [ ] Developer Hooks: Expose filter hooks for developers to modify queries, cache keys, or output before rendering.
 
 
 ## Installation
@@ -211,12 +220,13 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 1. Upload plugin files to `/wp-content/plugins/gatherpress-magic-menu/` or install via WordPress plugins screen
 2. Activate the plugin
 3. The block hooks itself into `core/navigation` blocks
-5. Open the site editor, select your Navigation block, and find "GatherPress Magic Menu" already in place
-6. Configure the block settings in the sidebar
+4. Open the site editor, select your Navigation block, and find "GatherPress Magic Menu" already in place
+5. Configure the block settings in the sidebar
 
 ## Changelog
 
 ### 0.1.0
+
 * Initial release
 * Navigation link to GatherPress events archive
 * Optional taxonomy-based submenus

@@ -26,7 +26,7 @@ import metadata from './block.json';
  */
 addFilter(
 	'blocks.registerBlockType',
-	'gatherpress-magic-menu/add-taxonomy-attribute',
+	'gatherpress-magic-menu/allow-in-core-navigation',
 	( settings, name ) => {
 		if ( name !== 'core/navigation' ) {
 			return settings;

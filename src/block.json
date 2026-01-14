@@ -4,7 +4,7 @@
 	"name": "gatherpress/magic-menu",
 	"version": "0.1.0",
 	"title": "GatherPress Magic Menu",
-	"category": "widgets",
+	"category": "gatherpress",
 	"icon": "calendar-alt",
 	"description": "A navigation block that creates a dynamic GatherPress menu, with taxonomy-based submenus and upcoming event counters.",
 	"keywords": ["navigation", "gatherpress", "events", "menu", "link"],
@@ -65,6 +65,11 @@
 	"supports": {
 		"html": false,
 		"reusable": true,
+		"color": {
+			"text": false,
+			"background": false,
+			"link":false
+		},
 		"typography": {
 			"fontSize": true,
 			"lineHeight": true,

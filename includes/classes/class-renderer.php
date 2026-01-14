@@ -172,8 +172,15 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 */
 		private function render_simple_link( string $label, string $archive_url, bool $is_disabled, int $event_count, bool $show_count, string $wrapper_attributes, \WP_Block $block, Label_Formatter $formatter, Block_Builder $builder, HTML_Processor $processor ): string {
 			$formatted_label = $formatter->format_label_with_count( $label, $event_count, $show_count );
-			$nav_context     = $builder->get_navigation_context( $block );
-			$link_block      = $builder->create_link_block( $formatted_label, $archive_url, $nav_context );
+			// Inherit parent navigation context.
+			// $nav_context         = $this->get_navigation_context( $block ); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found .
+			/**
+			 * Navigation context including colors and styles.
+			 *
+			 * @var array<string, mixed> $nav_context
+			 */
+			$nav_context = $block->context;
+			$link_block  = $builder->create_link_block( $formatted_label, $archive_url, $nav_context );
 
 			if ( ! is_array( $link_block ) ) {
 				return $this->render_fallback_html( $formatted_label, $archive_url, $is_disabled, $wrapper_attributes );
@@ -220,7 +227,13 @@ if ( ! class_exists( 'Renderer' ) ) {
 			$formatted_label = $formatter->format_label_with_count( $label, $total_count, $show_count );
 			// Inherit parent navigation context, but strip overlay colors
 			// so they do not affect the submenu trigger <li>.
-			$nav_context         = $builder->get_navigation_context( $block );
+			// $nav_context         = $this->get_navigation_context( $block ); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found.
+			/**
+			 * Navigation context including colors and styles.
+			 *
+			 * @var array<string, mixed> $nav_context
+			 */
+			$nav_context         = $block->context;
 			$reduced_nav_context = $this->strip_overlay_context( $nav_context );
 			$submenu_block       = $builder->create_submenu_block( $formatted_label, $archive_url, $reduced_nav_context );
 
@@ -249,12 +262,18 @@ if ( ! class_exists( 'Renderer' ) ) {
 			// Create a WP_Block instance to properly inherit context.
 			$submenu_wp_block = new \WP_Block( $submenu_block, array( 'postId' => get_the_ID() ) );
 
-			// Inherit parent navigation context, but strip overlay colors
-			// so they do not affect the submenu trigger <li>.
-			// Important for all other attributes, that should not be missed,
-			// like "Show Arrow" or not, which is inherited onto the submenu.
+			/**
+			 * Navigation context including colors and styles.
+			 *
+			 * Inherit parent navigation context, but strip overlay colors
+			 * so they do not affect the submenu trigger <li>.
+			 * Important for all other attributes, that should not be missed,
+			 * like "Show Arrow" or not, which is inherited onto the submenu.
+			 *
+			 * @var array<string, mixed> $nav_context
+			 */
 			$submenu_wp_block->context = array_merge(
-				$this->strip_overlay_context( $block->context ),
+				$reduced_nav_context,
 				$submenu_wp_block->context
 			);
 
@@ -315,5 +334,31 @@ if ( ! class_exists( 'Renderer' ) ) {
 
 			return $context;
 		}
+
+		/**
+		 * Extracts context values needed for rendering.
+		 *
+		 * Consolidates all context extraction in one place for better maintainability.
+		 * Includes overlay colors, submenu icon visibility, and inherited styles.
+		 *
+		 * @since 0.1.0
+		 * @param \WP_Block $block Block instance.
+		 * @return array<string, mixed> Array with all context values.
+		
+		public function get_navigation_context( \WP_Block $block ): array {
+			$context = $block->context;
+
+			return [
+				'showSubmenuIcon'              => $context['showSubmenuIcon'] ?? true,
+				'openSubmenusOnClick'          => $context['openSubmenusOnClick'] ?? false,
+				'overlayTextColor'             => $context['overlayTextColor'] ?? null,
+				'overlayBackgroundColor'       => $context['overlayBackgroundColor'] ?? null,
+				'customOverlayTextColor'       => $context['customOverlayTextColor'] ?? null,
+				'customOverlayBackgroundColor' => $context['customOverlayBackgroundColor'] ?? null,
+				// 'fontSize'
+				// 'customFontSize'
+				// 'style'
+			];
+		} */
 	}
 }

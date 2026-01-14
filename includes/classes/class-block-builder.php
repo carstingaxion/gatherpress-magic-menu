@@ -33,29 +33,6 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 		private function __construct() {}
 
 		/**
-		 * Extracts context values needed for rendering.
-		 *
-		 * Consolidates all context extraction in one place for better maintainability.
-		 * Includes overlay colors, submenu icon visibility, and inherited styles.
-		 *
-		 * @since 0.1.0
-		 * @param \WP_Block $block Block instance.
-		 * @return array<string, mixed> Array with all context values.
-		 */
-		public function get_navigation_context( \WP_Block $block ): array {
-			$context = $block->context;
-
-			return [
-				'showSubmenuIcon'              => $context['showSubmenuIcon'] ?? true,
-				'openSubmenusOnClick'          => $context['openSubmenusOnClick'] ?? false,
-				'overlayTextColor'             => $context['overlayTextColor'] ?? null,
-				'overlayBackgroundColor'       => $context['overlayBackgroundColor'] ?? null,
-				'customOverlayTextColor'       => $context['customOverlayTextColor'] ?? null,
-				'customOverlayBackgroundColor' => $context['customOverlayBackgroundColor'] ?? null,
-			];
-		}
-
-		/**
 		 * Creates a navigation link block structure.
 		 *
 		 * Mimics core/navigation-link structure to ensure compatibility
@@ -342,8 +319,7 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 
 			// Core enables support at runtime.
 			$block->block_type->supports['color'] = true;
-
-			$colors = wp_apply_colors_support( $block->block_type, $attributes );
+			$colors                               = wp_apply_colors_support( $block->block_type, $attributes );
 
 			/**
 			 * Type safety.
