@@ -58,6 +58,7 @@ The block integrates with WordPress's native Navigation block and inherits its s
 **Caching Behavior:**
 
 * Upcoming events query results cached for 7 days
+    * If "GatherPress Cache Invalidation Hooks" plugin is active, the data for upcoming events is coming from a fresh DB option. In this case the "GatherPress Magic Menu" does neither query for events, nor persisting anything. The DB option is updated whenever an event reaches its event-end-time.
 * Taxonomy term data cached separately per taxonomy
 * Caches cleared when:
     * Event post status changes to/from 'publish'
@@ -191,10 +192,6 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 
 
 ## Ideas for later
-
-### Performance & Caching
-
-* [ ] Cache Invalidation Granularity: Currently, changing any event clears ALL taxonomy caches. Consider invalidating only the specific taxonomy caches that are actually affected by the changed event.
 
 
 ### User Experience
