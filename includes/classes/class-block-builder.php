@@ -45,24 +45,14 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 		public function get_navigation_context( \WP_Block $block ): array {
 			$context = $block->context;
 
-			return array(
-				// Overlay colors for submenu dropdowns.
-				'overlayTextColor'             => isset( $context['overlayTextColor'] ) && is_string( $context['overlayTextColor'] ) ? $context['overlayTextColor'] : '',
-				'customOverlayTextColor'       => isset( $context['customOverlayTextColor'] ) && is_string( $context['customOverlayTextColor'] ) ? $context['customOverlayTextColor'] : '',
-				'overlayBackgroundColor'       => isset( $context['overlayBackgroundColor'] ) && is_string( $context['overlayBackgroundColor'] ) ? $context['overlayBackgroundColor'] : '',
-				'customOverlayBackgroundColor' => isset( $context['customOverlayBackgroundColor'] ) && is_string( $context['customOverlayBackgroundColor'] ) ? $context['customOverlayBackgroundColor'] : '',
-
-				// Submenu icon visibility and interaction.
-				'showSubmenuIcon'              => isset( $context['showSubmenuIcon'] ) ? (bool) $context['showSubmenuIcon'] : true,
-				'openSubmenusOnClick'          => isset( $context['openSubmenusOnClick'] ) ? (bool) $context['openSubmenusOnClick'] : false,
-
-				// Complete style object from parent navigation.
-				'style'                        => isset( $context['style'] ) && is_array( $context['style'] ) ? $context['style'] : array(),
-
-				// Font size from parent navigation.
-				'fontSize'                     => isset( $context['fontSize'] ) && is_string( $context['fontSize'] ) ? $context['fontSize'] : '',
-				'customFontSize'               => isset( $context['customFontSize'] ) && is_string( $context['customFontSize'] ) ? $context['customFontSize'] : '',
-			);
+			return [
+				'showSubmenuIcon'              => $context['showSubmenuIcon'] ?? true,
+				'openSubmenusOnClick'          => $context['openSubmenusOnClick'] ?? false,
+				'overlayTextColor'             => $context['overlayTextColor'] ?? null,
+				'overlayBackgroundColor'       => $context['overlayBackgroundColor'] ?? null,
+				'customOverlayTextColor'       => $context['customOverlayTextColor'] ?? null,
+				'customOverlayBackgroundColor' => $context['customOverlayBackgroundColor'] ?? null,
+			];
 		}
 
 		/**
@@ -101,9 +91,24 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 
 			$link_blocks = parse_blocks( $link_content );
 
-			return ( ! empty( $link_blocks ) && isset( $link_blocks[0] ) && is_array( $link_blocks[0] ) )
-				? $link_blocks[0]
-				: false;
+			if ( empty( $link_blocks ) ) {
+				return false;
+			}
+
+			/**
+			 * Type safety first
+			 * 
+			 * @var array{
+			 *   blockName: string,
+			 *   attrs: array<string, mixed>,
+			 *   innerBlocks: array<int, array<string, mixed>>,
+			 *   innerHTML: string,
+			 *   innerContent: array<int, string|null>,
+			 * } $link_block
+			 */
+			$link_block = $link_blocks[0];
+
+			return $link_block;
 		}
 
 		/**
@@ -146,9 +151,24 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 
 			$submenu_blocks = parse_blocks( $submenu_content );
 
-			return ( ! empty( $submenu_blocks ) && isset( $submenu_blocks[0] ) && is_array( $submenu_blocks[0] ) )
-				? $submenu_blocks[0]
-				: false;
+			if ( empty( $submenu_blocks ) ) {
+				return false;
+			}
+
+			/**
+			 * Type safety first
+			 * 
+			 * @var array{
+			 *   blockName: string,
+			 *   attrs: array<string, mixed>,
+			 *   innerBlocks: array<int, array<string, mixed>>,
+			 *   innerHTML: string,
+			 *   innerContent: array<int, string|null>,
+			 * } $submenu_block
+			 */
+			$submenu_block = $submenu_blocks[0];
+
+			return $submenu_block;
 		}
 
 		/**
@@ -198,6 +218,17 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 
 				$link_attrs = $this->apply_context_to_attributes( $link_attrs, $nav_context, true );
 
+				/**
+				 * Type safety first
+				 * 
+				 * @var array{
+				 *   blockName: string,
+				 *   attrs: array<string, mixed>,
+				 *   innerBlocks: array<int, array<string, mixed>>,
+				 *   innerHTML: string,
+				 *   innerContent: array<int, string|null>,
+				 * } $submenu_block
+				 */
 				$submenu_block['innerBlocks'][] = array(
 					'blockName'    => 'core/navigation-link',
 					'attrs'        => $link_attrs,
@@ -239,47 +270,90 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 			}
 
 			if ( $use_overlay ) {
-				$attrs = $this->apply_overlay_colors_to_attributes( $attrs, $nav_context );
+				$attrs = $this->apply_overlay_context_to_attributes( $attrs, $nav_context );
 			}
 
 			return $attrs;
 		}
 
 		/**
-		 * Applies overlay colors to attributes.
+		 * Mirrors core/navigation-submenu overlay color handling.
 		 *
-		 * @since 0.1.0
-		 * @param array<string, mixed> $attrs       Block attributes.
-		 * @param array<string, mixed> $nav_context Navigation context.
-		 * @return array<string, mixed> Modified attributes.
+		 * @param array<string, mixed> $attributes Block attributes.
+		 * @param array<string, mixed> $context    Parent Navigation block context.
+		 * @return array<string, mixed>
 		 */
-		private function apply_overlay_colors_to_attributes( array $attrs, array $nav_context ): array {
-			if ( ! empty( $nav_context['overlayTextColor'] ) && is_string( $nav_context['overlayTextColor'] ) ) {
-				$attrs['textColor'] = $nav_context['overlayTextColor'];
-			}
-			if ( ! empty( $nav_context['customOverlayTextColor'] ) && is_string( $nav_context['customOverlayTextColor'] ) ) {
-				if ( ! isset( $attrs['style'] ) || ! is_array( $attrs['style'] ) ) {
-					$attrs['style'] = array();
-				}
-				if ( ! isset( $attrs['style']['color'] ) || ! is_array( $attrs['style']['color'] ) ) {
-					$attrs['style']['color'] = array();
-				}
-				$attrs['style']['color']['text'] = $nav_context['customOverlayTextColor'];
-			}
-			if ( ! empty( $nav_context['overlayBackgroundColor'] ) && is_string( $nav_context['overlayBackgroundColor'] ) ) {
-				$attrs['backgroundColor'] = $nav_context['overlayBackgroundColor'];
-			}
-			if ( ! empty( $nav_context['customOverlayBackgroundColor'] ) && is_string( $nav_context['customOverlayBackgroundColor'] ) ) {
-				if ( ! isset( $attrs['style'] ) || ! is_array( $attrs['style'] ) ) {
-					$attrs['style'] = array();
-				}
-				if ( ! isset( $attrs['style']['color'] ) || ! is_array( $attrs['style']['color'] ) ) {
-					$attrs['style']['color'] = array();
-				}
-				$attrs['style']['color']['background'] = $nav_context['customOverlayBackgroundColor'];
+		public function apply_overlay_context_to_attributes(
+			array $attributes,
+			array $context
+		): array {
+
+			// Named colors (theme.json aware).
+			if ( isset( $context['overlayTextColor'] ) ) {
+				$attributes['textColor'] = $context['overlayTextColor'];
 			}
 
-			return $attrs;
+			if ( isset( $context['overlayBackgroundColor'] ) ) {
+				$attributes['backgroundColor'] = $context['overlayBackgroundColor'];
+			}
+
+			// Custom colors (inline styles).
+			if (
+				isset( $context['customOverlayTextColor'] ) ||
+				isset( $context['customOverlayBackgroundColor'] )
+			) {
+				$attributes['style']['color'] ??= [];
+
+				if ( isset( $context['customOverlayTextColor'] ) ) {
+					$attributes['style']['color']['text'] = $context['customOverlayTextColor'];
+				}
+
+				if ( isset( $context['customOverlayBackgroundColor'] ) ) {
+					$attributes['style']['color']['background'] = $context['customOverlayBackgroundColor'];
+				}
+			}
+
+			return $attributes;
+		}
+
+		/**
+		 * Extracts overlay colors from submenu parent block.
+		 *
+		 * This mimics core/navigation-submenu's approach: it copies overlay colors
+		 * from context into the submenu attributes, then uses wp_apply_colors_support()
+		 * to generate the proper CSS classes and inline styles.
+		 *
+		 * @since 0.1.0
+		 * @param \WP_Block $block The submenu block instance.
+		 * @return array<string, string> Array with 'class' and 'style' keys for the container.
+		 */
+		public function extract_overlay_colors_from_parent_block( \WP_Block $block ): array {
+			/**
+			 * Type safety.
+			 *
+			 * @var array<string, mixed> $attributes
+			 */
+			$attributes = $block->attributes;
+
+			$attributes = $this->apply_overlay_context_to_attributes(
+				$attributes,
+				$block->context
+			);
+
+			// Core enables support at runtime.
+			$block->block_type->supports['color'] = true;
+
+			$colors = wp_apply_colors_support( $block->block_type, $attributes );
+
+			/**
+			 * Type safety.
+			 *
+			 * @var array{class?: string, style?: string} $colors
+			 */
+			return [
+				'class' => is_string( $colors['class'] ?? null ) ? $colors['class'] : '',
+				'style' => is_string( $colors['style'] ?? null ) ? $colors['style'] : '',
+			];
 		}
 	}
 }

@@ -51,24 +51,26 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 
 			$processor = new \WP_HTML_Tag_Processor( $html );
 
-			if ( $processor->next_tag( array( 'tag_name' => 'li' ) ) ) {
-				preg_match( '/class="([^"]*)"/', $wrapper_attributes, $class_matches );
-				preg_match( '/style="([^"]*)"/', $wrapper_attributes, $style_matches );
+			if ( ! $processor->next_tag( array( 'tag_name' => 'li' ) ) ) {
+				return $html;
+			}
 
-				if ( ! empty( $class_matches[1] ) ) {
-					$wrapper_classes = explode( ' ', $class_matches[1] );
-					foreach ( $wrapper_classes as $class ) {
-						if ( ! empty( $class ) ) {
-							$processor->add_class( $class );
-						}
+			preg_match( '/class="([^"]*)"/', $wrapper_attributes, $class_matches );
+			preg_match( '/style="([^"]*)"/', $wrapper_attributes, $style_matches );
+
+			if ( ! empty( $class_matches[1] ) ) {
+				$wrapper_classes = explode( ' ', $class_matches[1] );
+				foreach ( $wrapper_classes as $class ) {
+					if ( ! empty( $class ) ) {
+						$processor->add_class( $class );
 					}
 				}
+			}
 
-				if ( ! empty( $style_matches[1] ) ) {
-					$existing_style = $processor->get_attribute( 'style' );
-					$new_style      = $existing_style ? $existing_style . '; ' . $style_matches[1] : $style_matches[1];
-					$processor->set_attribute( 'style', $new_style );
-				}
+			if ( ! empty( $style_matches[1] ) ) {
+				$existing_style = $processor->get_attribute( 'style' );
+				$new_style      = $existing_style ? $existing_style . '; ' . $style_matches[1] : $style_matches[1];
+				$processor->set_attribute( 'style', $new_style );
 			}
 
 			return $processor->get_updated_html();
@@ -189,68 +191,6 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 			}
 
 			return $classes;
-		}
-
-		/**
-		 * Applies overlay colors to submenu container using core's color support.
-		 *
-		 * This mimics core/navigation-submenu's approach: it copies overlay colors
-		 * from context into the submenu attributes, then uses wp_apply_colors_support()
-		 * to generate the proper CSS classes and inline styles.
-		 *
-		 * @since 0.1.0
-		 * @param \WP_Block $submenu_block The submenu block instance.
-		 * @return array<string, string> Array with 'class' and 'style' keys for the container.
-		 */
-		public function apply_overlay_colors_to_container( \WP_Block $submenu_block ): array {
-			/** @var array<string, mixed> $attributes */
-			$attributes = $submenu_block->attributes;
-
-			// Copy overlay colors from context to attributes (like core does).
-			if ( array_key_exists( 'overlayTextColor', $submenu_block->context ) ) {
-				$attributes['textColor'] = $submenu_block->context['overlayTextColor'];
-			}
-			if ( array_key_exists( 'overlayBackgroundColor', $submenu_block->context ) ) {
-				$attributes['backgroundColor'] = $submenu_block->context['overlayBackgroundColor'];
-			}
-			if ( array_key_exists( 'customOverlayTextColor', $submenu_block->context ) ) {
-				if ( ! isset( $attributes['style'] ) || ! is_array( $attributes['style'] ) ) {
-					$attributes['style'] = array();
-				}
-				if ( ! isset( $attributes['style']['color'] ) || ! is_array( $attributes['style']['color'] ) ) {
-					$attributes['style']['color'] = array();
-				}
-				$attributes['style']['color']['text'] = $submenu_block->context['customOverlayTextColor'];
-			}
-			if ( array_key_exists( 'customOverlayBackgroundColor', $submenu_block->context ) ) {
-				if ( ! isset( $attributes['style'] ) || ! is_array( $attributes['style'] ) ) {
-					$attributes['style'] = array();
-				}
-				if ( ! isset( $attributes['style']['color'] ) || ! is_array( $attributes['style']['color'] ) ) {
-					$attributes['style']['color'] = array();
-				}
-				$attributes['style']['color']['background'] = $submenu_block->context['customOverlayBackgroundColor'];
-			}
-
-			// Temporarily enable color support to get wp_apply_colors_support to work.
-			$submenu_block->block_type->supports['color'] = true;
-			/** @var array{class?: string, style?: string} $colors_support */
-			$colors_support = wp_apply_colors_support( $submenu_block->block_type, $attributes );
-
-			$result = array(
-				'class' => '',
-				'style' => '',
-			);
-
-			if ( array_key_exists( 'class', $colors_support ) ) {
-				$result['class'] = $colors_support['class'];
-			}
-
-			if ( array_key_exists( 'style', $colors_support ) ) {
-				$result['style'] = $colors_support['style'];
-			}
-
-			return $result;
 		}
 
 		/**

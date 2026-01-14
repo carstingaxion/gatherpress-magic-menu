@@ -44,7 +44,7 @@
 	],
 	"example": {
 		"attributes": {
-			"label": "View All Events"
+			"label": "Events"
 		}
 	},
 	"styles": [

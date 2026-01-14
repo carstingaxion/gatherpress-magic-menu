@@ -218,8 +218,11 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 */
 		private function render_submenu( string $label, string $archive_url, array $terms_data, string $taxonomy_slug, int $total_count, bool $show_count, bool $show_term_count, string $wrapper_attributes, \WP_Block $block, Label_Formatter $formatter, Block_Builder $builder, HTML_Processor $processor ): string {
 			$formatted_label = $formatter->format_label_with_count( $label, $total_count, $show_count );
-			$nav_context     = $builder->get_navigation_context( $block );
-			$submenu_block   = $builder->create_submenu_block( $formatted_label, $archive_url, $nav_context );
+			// Inherit parent navigation context, but strip overlay colors
+			// so they do not affect the submenu trigger <li>.
+			$nav_context         = $builder->get_navigation_context( $block );
+			$reduced_nav_context = $this->strip_overlay_context( $nav_context );
+			$submenu_block       = $builder->create_submenu_block( $formatted_label, $archive_url, $reduced_nav_context );
 
 			if ( ! is_array( $submenu_block ) ) {
 				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block, $formatter, $builder, $processor );
@@ -230,16 +233,33 @@ if ( ! class_exists( 'Renderer' ) ) {
 				$submenu_block['innerBlocks'] = array();
 			}
 
-			// Add term links.
+			/**
+			 * Add term links.
+			 * 
+			 * @var array{
+			 *   blockName?: string,
+			 *   attrs?: array<string, mixed>,
+			 *   innerBlocks?: array<int, array<string, mixed>>,
+			 *   innerHTML?: string,
+			 *   innerContent?: array<int, string|null>,
+			 * } $submenu_block
+			 */
 			$submenu_block = $builder->add_term_links_to_submenu( $submenu_block, $terms_data, $taxonomy_slug, $show_term_count, $nav_context );
 
 			// Create a WP_Block instance to properly inherit context.
 			$submenu_wp_block = new \WP_Block( $submenu_block, array( 'postId' => get_the_ID() ) );
 
-			// Inherit parent navigation context.
-			$submenu_wp_block->context = array_merge( $block->context, $submenu_wp_block->context );
+			// Inherit parent navigation context, but strip overlay colors
+			// so they do not affect the submenu trigger <li>.
+			// Important for all other attributes, that should not be missed,
+			// like "Show Arrow" or not, which is inherited onto the submenu.
+			$submenu_wp_block->context = array_merge(
+				$this->strip_overlay_context( $block->context ),
+				$submenu_wp_block->context
+			);
 
-			$submenu_container_attributes = $processor->apply_overlay_colors_to_container( $submenu_wp_block );
+			// Extract overlay colors from parent block.
+			$submenu_container_attributes = $builder->extract_overlay_colors_from_parent_block( $block );
 			$rendered                     = $submenu_wp_block->render();
 
 			// Apply container colors to the <ul> element.
@@ -277,6 +297,23 @@ if ( ! class_exists( 'Renderer' ) ) {
 				$disabled_attr,
 				$label
 			);
+		}
+
+		/**
+		 * Removes overlay-related context keys.
+		 *
+		 * @param array<string, mixed> $context Parent blocks context array.
+		 * @return array<string, mixed>
+		 */
+		private function strip_overlay_context( array $context ): array {
+			unset(
+				$context['overlayTextColor'],
+				$context['overlayBackgroundColor'],
+				$context['customOverlayTextColor'],
+				$context['customOverlayBackgroundColor']
+			);
+
+			return $context;
 		}
 	}
 }

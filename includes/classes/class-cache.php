@@ -291,7 +291,7 @@ if ( ! class_exists( 'Cache' ) ) {
 			}
 
 			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				$prepared_sql
+				$prepared_sql // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			);
 		}
 	}
