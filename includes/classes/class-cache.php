@@ -38,7 +38,12 @@ if ( ! class_exists( 'Cache' ) ) {
 		 * @since 0.1.0
 		 */
 		private function __construct() {
-			add_action( 'transition_post_status', array( $this, 'clear_cache_on_status_change' ), 10, 3 );
+			/**
+			 * Use "GatherPress Cache Invalidation Hooks" instead of built-in cache invalidation, if available.
+			 */
+			if ( true !== apply_filters( 'gatherpress_upcoming_events_option_tracker_enabled', false ) ) {
+				add_action( 'transition_post_status', array( $this, 'clear_cache_on_status_change' ), 10, 3 );
+			}
 			add_action( 'set_object_terms', array( $this, 'clear_cache_on_terms_change' ), 10, 4 );
 		}
 
@@ -50,7 +55,25 @@ if ( ! class_exists( 'Cache' ) ) {
 		 */
 		public function get_upcoming_events(): array {
 			$cache_key     = 'gatherpress_magic_menu_upcoming_events';
-			$cached_events = get_transient( $cache_key );
+			/**
+			 * Short circuit the query.
+			 *
+			 * If "GatherPress Cache Invalidation Hooks" is active,
+			 * we can use an accurat option value, instead of querying for the events directly.
+			 *
+			 * The DB option will only be available, if this filter is enabled.
+			 * 
+			 * This filter is coming from:
+			 * https://github.com/carstingaxion/gatherpress-cache-invalidation-hooks
+			 *
+			 * and is documented in:
+			 * includes/classes/class-option-tracker.php.
+			 */
+			if ( true === apply_filters( 'gatherpress_upcoming_events_option_tracker_enabled', false ) ) {
+				$cached_events = get_option( 'gatherpress_upcoming_events' );
+			} else {
+				$cached_events = get_transient( $cache_key );
+			}
 
 			/**
 			 * This is for sure an array of int or empty.
