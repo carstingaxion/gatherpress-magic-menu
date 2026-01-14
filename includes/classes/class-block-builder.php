@@ -279,7 +279,13 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				isset( $context['customOverlayTextColor'] ) ||
 				isset( $context['customOverlayBackgroundColor'] )
 			) {
-				$attributes['style']['color'] ??= [];
+
+				if ( ! isset( $attributes['style'] ) || ! is_array( $attributes['style'] ) ) {
+					$attributes['style'] = array();
+				}
+				if ( ! isset( $attributes['style']['color'] ) || ! is_array( $attributes['style']['color'] ) ) {
+					$attributes['style']['color'] = array();
+				}
 
 				if ( isset( $context['customOverlayTextColor'] ) ) {
 					$attributes['style']['color']['text'] = $context['customOverlayTextColor'];
@@ -311,11 +317,8 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 			 * @var array<string, mixed> $attributes
 			 */
 			$attributes = $block->attributes;
-
-			$attributes = $this->apply_overlay_context_to_attributes(
-				$attributes,
-				$block->context
-			);
+			// @phpstan-ignore-next-line
+			$attributes = $this->apply_overlay_context_to_attributes( $attributes, $block->context );
 
 			// Core enables support at runtime.
 			$block->block_type->supports['color'] = true;
