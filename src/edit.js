@@ -1,46 +1,58 @@
 /**
- * Retrieves the translation of text.
+ * Editor component for the GatherPress Magic Menu block.
  *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
+ * @package
+ * @since 0.1.0
  */
-import { __, sprintf } from '@wordpress/i18n';
+
+if ( typeof window === 'undefined' ) {
+	throw new Error(
+		'This file should only be loaded in a browser environment'
+	);
+}
 
 /**
- * React hook that is used to mark the block wrapper element.
- * It provides all the necessary props like the class name.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
+ * ============================================================================
+ * IMPORTS
+ * WordPress dependencies
+ * ============================================================================
  */
-import {
-	useBlockProps,
-	RichText,
-	InspectorControls,
-} from '@wordpress/block-editor';
-import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
-import { useSelect } from '@wordpress/data';
-import { store as coreStore } from '@wordpress/core-data';
-import { useMemo } from '@wordpress/element';
+import { useBlockProps } from '@wordpress/block-editor';
 
 /**
- * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
- * Those files can contain any CSS code that gets applied to the editor.
- *
- * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ * ============================================================================
+ * IMPORTS
+ * Internal dependencies
+ * ============================================================================
  */
 import './editor.scss';
 
+import { useNavigationContext } from './hooks/useNavigationContext';
+import { useTaxonomies } from './hooks/useTaxonomies';
+import { usePostTypeLabel } from './hooks/usePostTypeLabel';
+
+import { InspectorPanel } from './components/InspectorPanel';
+import { SubmenuPlaceholder } from './components/SubmenuPlaceholder';
+import { NavigationLink } from './components/NavigationLink';
+
 /**
- * The edit function describes the structure of your block in the context of the
- * editor. This represents what the editor will render when the block is used.
+ * Main edit component that orchestrates all sub-components.
  *
+ * Responsibilities:
+ * - Coordinate between all hooks and components
+ * - Manage block attributes
+ * - Determine block structure (link vs submenu)
+ * - Apply block wrapper props
+ *
+ * @since 0.1.0
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
  *
- * @param {Object}   props               - Component props.
- * @param {Object}   props.attributes    - Block attributes containing:
- * @param {Function} props.setAttributes - Function to update block attributes.
- * @param {Object}   props.context       - Context from parent blocks, including:
- * @param {string}   props.className     - The block's className.
- * @return {Element} Element to render.
+ * @param {Object}   props               Component props.
+ * @param {Object}   props.attributes    Block attributes.
+ * @param {Function} props.setAttributes Function to update block attributes.
+ * @param {Object}   props.context       Context from parent blocks.
+ * @param {string}   props.className     The block's className.
+ * @return {JSX.Element} Element to render.
  */
 export default function Edit( {
 	attributes,
@@ -52,414 +64,92 @@ export default function Edit( {
 		attributes;
 
 	/**
-	 * Extract colors from navigation context.
-	 * Main link uses textColor/backgroundColor
-	 * Overlay colors are for submenu dropdowns (not applicable to main link)
+	 * Extract navigation context and styling.
 	 */
 	const {
-		textColor,
-		customTextColor,
-		backgroundColor,
-		customBackgroundColor,
-		overlayTextColor,
-		customOverlayTextColor,
-		overlayBackgroundColor,
-		customOverlayBackgroundColor,
+		linkStyles,
+		overlayStyles,
+		linkClasses,
+		overlayClasses,
 		showSubmenuIcon,
-	} = context;
+	} = useNavigationContext( context );
 
 	/**
-	 * Fetch taxonomies registered with the gatherpress_event post type.
+	 * Fetch taxonomies for selector.
 	 */
-	const taxonomies = useSelect( ( select ) => {
-		const { getTaxonomies } = select( coreStore );
-		const allTaxonomies = getTaxonomies( { per_page: -1 } ) || [];
-
-		// Filter to only include taxonomies associated with gatherpress_event
-		return allTaxonomies.filter( ( taxonomy ) => {
-			return (
-				taxonomy.types && taxonomy.types.includes( 'gatherpress_event' )
-			);
-		} );
-	}, [] );
+	const taxonomyOptions = useTaxonomies();
 
 	/**
-	 * Fetch the gatherpress_event post type to get its plural label.
+	 * Get fallback label from post type.
 	 */
-	const postType = useSelect( ( select ) => {
-		const { getPostType } = select( coreStore );
-		return getPostType( 'gatherpress_event' );
-	}, [] );
-
-	/**
-	 * Get the fallback label from post type plural label.
-	 */
-	const getFallbackLabel = () => {
-		if ( postType && postType.labels && postType.labels.name ) {
-			return postType.labels.name;
-		}
-		return __( 'Events', 'gatherpress-magic-menu' );
-	};
+	const fallbackLabel = usePostTypeLabel();
 
 	/**
 	 * Get the effective label (user-provided or fallback).
 	 */
-	const getEffectiveLabel = () => {
-		return label || getFallbackLabel();
-	};
+	const effectiveLabel = label || fallbackLabel;
 
 	/**
-	 * Build inline styles from navigation context colors.
-	 * Only apply main link colors (not overlay colors).
+	 * Determine if block has submenu.
 	 */
-	const linkStyles = useMemo( () => {
-		const styles = {};
+	const hasSubmenu = Boolean( gatherpressTaxonomy );
 
-		// Apply text color from context
-		if ( customTextColor ) {
-			styles.color = customTextColor;
-		}
-
-		// Apply background color from context
-		if ( customBackgroundColor ) {
-			styles.backgroundColor = customBackgroundColor;
-		}
-
-		if ( Object.keys( styles ).length > 0 ) {
-			return styles;
-		}
-		return undefined;
-	}, [ customTextColor, customBackgroundColor ] );
-
-	/**
-	 * Build overlay styles for submenu preview.
-	 * These are the styles that would apply to term links in the submenu.
-	 */
-	const overlayStyles = useMemo( () => {
-		const styles = {};
-
-		// Apply overlay text color from context
-		if ( customOverlayTextColor ) {
-			styles.color = customOverlayTextColor;
-		}
-
-		// Apply overlay background color from context
-		if ( customOverlayBackgroundColor ) {
-			styles.backgroundColor = customOverlayBackgroundColor;
-		}
-
-		if ( Object.keys( styles ).length > 0 ) {
-			return styles;
-		}
-		return undefined;
-	}, [ customOverlayTextColor, customOverlayBackgroundColor ] );
-
-	/**
-	 * Build class names from navigation context.
-	 */
-	const linkClasses = useMemo( () => {
-		const classes = [ 'wp-block-navigation-item__content' ];
-
-		// Add text color class if present
-		if ( textColor ) {
-			classes.push( sprintf( 'has-%s-color', textColor ) );
-			classes.push( 'has-text-color' );
-		}
-
-		// Add background color class if present
-		if ( backgroundColor ) {
-			classes.push(
-				sprintf( 'has-%s-background-color', backgroundColor )
-			);
-			classes.push( 'has-background' );
-		}
-
-		return classes.join( ' ' );
-	}, [ textColor, backgroundColor ] );
-
-	/**
-	 * Build overlay class names for submenu preview.
-	 */
-	const overlayClasses = useMemo( () => {
-		const classes = [ 'wp-block-navigation-item__content' ];
-
-		// Add overlay text color class if present
-		if ( overlayTextColor ) {
-			classes.push( sprintf( 'has-%s-color', overlayTextColor ) );
-			classes.push( 'has-text-color' );
-		}
-
-		// Add overlay background color class if present
-		if ( overlayBackgroundColor ) {
-			classes.push(
-				sprintf( 'has-%s-background-color', overlayBackgroundColor )
-			);
-			classes.push( 'has-background' );
-		}
-
-		return classes.join( ' ' );
-	}, [ overlayTextColor, overlayBackgroundColor ] );
-
-	/**
-	 * Handles changes to the label text.
-	 *
-	 * @param {string} newLabel The new label text.
-	 * @return {void}
-	 */
 	const onChangeLabel = ( newLabel ) => {
 		setAttributes( { label: newLabel } );
 	};
 
-	/**
-	 * Handles changes to the taxonomy selection.
-	 *
-	 * @param {string} newTaxonomy The selected taxonomy slug.
-	 * @return {void}
-	 */
 	const onChangeTaxonomy = ( newTaxonomy ) => {
 		setAttributes( { gatherpressTaxonomy: newTaxonomy } );
 	};
 
-	/**
-	 * Handles changes to the event count toggle.
-	 *
-	 * @param {boolean} newValue The new toggle value.
-	 * @return {void}
-	 */
 	const onChangeShowEventCount = ( newValue ) => {
 		setAttributes( { showEventCount: newValue } );
 	};
 
-	/**
-	 * Handles changes to the term event count toggle.
-	 *
-	 * @param {boolean} newValue The new toggle value.
-	 * @return {void}
-	 */
 	const onChangeShowTermEventCount = ( newValue ) => {
 		setAttributes( { showTermEventCount: newValue } );
 	};
 
 	/**
-	 * Prepare taxonomy options for the SelectControl.
+	 * Build block wrapper props.
 	 */
-	const taxonomyOptions = [
-		{ label: __( 'None', 'gatherpress-magic-menu' ), value: '' },
-	];
-
-	if ( taxonomies ) {
-		const mappedTaxonomies = taxonomies.map( ( taxonomy ) => {
-			let taxonomyLabel = taxonomy.slug;
-			if ( taxonomy.name ) {
-				taxonomyLabel = taxonomy.name;
-			}
-			return {
-				label: taxonomyLabel,
-				value: taxonomy.slug,
-			};
-		} );
-		taxonomyOptions.push( ...mappedTaxonomies );
-	}
-
 	const blockProps = useBlockProps( {
-		className: gatherpressTaxonomy
+		className: hasSubmenu
 			? 'wp-block-navigation-item wp-block-navigation-submenu has-child open-on-hover-click'
 			: 'wp-block-navigation-item wp-block-navigation-link',
 	} );
 
-	// /**
-	//  * Build the event count element with proper i18n using sprintf.
-	//  * Allows translators to control the position of count and label.
-	//  */
-	// let labelWithCount = getEffectiveLabel();
-	// if ( showEventCount ) {
-	// 	const countSpan =
-	// 		'<span class="gatherpress-magic-menu__count">n</span>';
-
-	// 	// Translatable format string that allows repositioning count and label
-	// 	labelWithCount = sprintf(
-	// 		/* translators: 1: label text, 2: event count HTML */
-	// 		__( '%1$s %2$s', 'gatherpress-magic-menu' ),
-	// 		getEffectiveLabel(),
-	// 		countSpan
-	// 	);
-	// }
-
-	/**
-	 * Renders the placeholder submenu when a taxonomy is selected.
-	 */
-	const renderSubmenuPlaceholder = () => {
-		if ( ! gatherpressTaxonomy ) {
-			return null;
-		}
-
-		// Example term names for placeholder
-		const exampleTerms = [
-			__( 'Example Term 1', 'gatherpress-magic-menu' ),
-			__( 'Sample Term 2', 'gatherpress-magic-menu' ),
-		];
-
-		return (
-			<ul className="wp-block-navigation__submenu-container">
-				{ exampleTerms.map( ( termName, index ) => {
-					let termLabelContent = termName;
-
-					if ( showTermEventCount ) {
-						// Build term label with count using sprintf for i18n
-						const termCountSpan = sprintf(
-							'<span class="gatherpress-magic-menu__count %s">n</span>',
-							className || ''
-						);
-
-						termLabelContent = sprintf(
-							/* translators: 1: term name, 2: event count HTML */
-							__( '%1$s %2$s', 'gatherpress-magic-menu' ),
-							termName,
-							termCountSpan
-						);
-					}
-
-					return (
-						<li
-							key={ index }
-							className="wp-block-navigation-item wp-block-navigation-link"
-						>
-							{ /* eslint-disable-next-line jsx-a11y/anchor-is-valid */ }
-							<a
-								className={ overlayClasses }
-								style={ overlayStyles }
-								href="#"
-							>
-								<span
-									className="wp-block-navigation-item__label"
-									dangerouslySetInnerHTML={ {
-										__html: termLabelContent,
-									} }
-								/>
-							</a>
-						</li>
-					);
-				} ) }
-			</ul>
-		);
-	};
-
 	return (
 		<>
-			<InspectorControls>
-				<PanelBody
-					title={ __(
-						'Settings',
-						'default'
-					) }
-					initialOpen={ true }
-				>
-					<SelectControl
-						label={ __(
-							'Select Taxonomy for Submenu',
-							'gatherpress-magic-menu'
-						) }
-						value={ gatherpressTaxonomy }
-						options={ taxonomyOptions }
-						onChange={ onChangeTaxonomy }
-						help={ __(
-							'Select a taxonomy to show its terms, of upcoming events only, as an auto-generated submenu. Or leave as "None" to not create a submenu.',
-							'gatherpress-magic-menu'
-						) }
-					/>
-					<ToggleControl
-						label={ __(
-							'Show Event Count',
-							'gatherpress-magic-menu'
-						) }
-						checked={ showEventCount }
-						onChange={ onChangeShowEventCount }
-						help={ __(
-							'Display the number of upcoming events next to the main archive label.',
-							'gatherpress-magic-menu'
-						) }
-					/>
-					{ gatherpressTaxonomy && (
-						<ToggleControl
-							label={ __(
-								'Show Term Event Count',
-								'gatherpress-magic-menu'
-							) }
-							checked={ showTermEventCount }
-							onChange={ onChangeShowTermEventCount }
-							help={ __(
-								'Display the number of upcoming events next to each term link.',
-								'gatherpress-magic-menu'
-							) }
-						/>
-					) }
-				</PanelBody>
-			</InspectorControls>
+			<InspectorPanel
+				gatherpressTaxonomy={ gatherpressTaxonomy }
+				showEventCount={ showEventCount }
+				showTermEventCount={ showTermEventCount }
+				taxonomyOptions={ taxonomyOptions }
+				onChangeTaxonomy={ onChangeTaxonomy }
+				onChangeShowEventCount={ onChangeShowEventCount }
+				onChangeShowTermEventCount={ onChangeShowTermEventCount }
+			/>
 			<li { ...blockProps }>
-				<a
-					className={ linkClasses }
-					style={ linkStyles }
-					href="#gatherpress-events-archive"
-					aria-label={ __(
-						'Link to GatherPress Events Archive',
-						'gatherpress-magic-menu'
-					) }
-				>
-					<RichText
-						identifier="label"
-						className="wp-block-navigation-item__label"
-						value={ getEffectiveLabel() }
-						onChange={ onChangeLabel }
-						placeholder={ getFallbackLabel() }
-						withoutInteractiveFormatting
-						allowedFormats={ [
-							'core/bold',
-							'core/italic',
-							'core/image',
-							'core/strikethrough',
-						] }
-						aria-label={ __(
-							'Navigation link text',
-							'gatherpress-magic-menu'
-						) }
+				<NavigationLink
+					effectiveLabel={ effectiveLabel }
+					fallbackLabel={ fallbackLabel }
+					showEventCount={ showEventCount }
+					hasSubmenu={ hasSubmenu }
+					showSubmenuIcon={ showSubmenuIcon }
+					linkClasses={ linkClasses }
+					linkStyles={ linkStyles }
+					onChangeLabel={ onChangeLabel }
+					className={ className }
+				/>
+				{ hasSubmenu && (
+					<SubmenuPlaceholder
+						showTermEventCount={ showTermEventCount }
+						overlayClasses={ overlayClasses }
+						overlayStyles={ overlayStyles }
+						className={ className }
 					/>
-					{ showEventCount && (
-						<span
-							className={ sprintf(
-								'gatherpress-magic-menu__count %s',
-								className || ''
-							) }
-							dangerouslySetInnerHTML={ {
-								__html: 'n',
-							} }
-						/>
-					) }
-					{ gatherpressTaxonomy && showSubmenuIcon && (
-						<span
-							className="wp-block-navigation__submenu-icon"
-							aria-hidden="true"
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="12"
-								height="12"
-								viewBox="0 0 12 12"
-								fill="none"
-								role="img"
-								aria-hidden="true"
-								focusable="false"
-							>
-								<path
-									d="M1.50002 4L6.00002 8L10.5 4"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="1.5"
-								/>
-							</svg>
-						</span>
-					) }
-				</a>
-				{ renderSubmenuPlaceholder() }
+				) }
 			</li>
 		</>
 	);
