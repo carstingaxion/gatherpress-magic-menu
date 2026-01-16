@@ -18,6 +18,8 @@ if ( typeof window === 'undefined' ) {
  * ============================================================================
  */
 import { useBlockProps } from '@wordpress/block-editor';
+import { useEffect, useRef } from '@wordpress/element';
+import { useDispatch } from '@wordpress/data';
 
 /**
  * ============================================================================
@@ -50,6 +52,7 @@ import { NavigationLink } from './components/NavigationLink';
  * @param {Object}   props               Component props.
  * @param {Object}   props.attributes    Block attributes.
  * @param {Function} props.setAttributes Function to update block attributes.
+ * @param {string}   props.clientId      Block client ID.
  * @param {Object}   props.context       Context from parent blocks.
  * @param {string}   props.className     The block's className.
  * @return {JSX.Element} Element to render.
@@ -58,6 +61,7 @@ export default function Edit( {
 	attributes,
 	context,
 	setAttributes,
+	clientId,
 	className,
 } ) {
 	const { label, gatherpressTaxonomy, showEventCount, showTermEventCount } =
@@ -118,6 +122,27 @@ export default function Edit( {
 			? 'wp-block-navigation-item wp-block-navigation-submenu has-child open-on-hover-click'
 			: 'wp-block-navigation-item wp-block-navigation-link',
 	} );
+
+	/**
+	 * Update block name with link text.
+	 * Use a ref to track the previous label to prevent unnecessary updates.
+	 */
+	const { updateBlockAttributes } = useDispatch( 'core/block-editor' );
+	const previousLabelRef = useRef( effectiveLabel );
+	useEffect( () => {
+		if ( ! effectiveLabel || ! clientId ) {
+			return;
+		}
+
+		if ( previousLabelRef.current !== effectiveLabel ) {
+			previousLabelRef.current = effectiveLabel;
+			updateBlockAttributes( clientId, {
+				metadata: {
+					name: effectiveLabel,
+				},
+			} );
+		}
+	}, [ effectiveLabel, clientId, updateBlockAttributes ] );
 
 	return (
 		<>
