@@ -11,8 +11,7 @@
 	"parent": ["core/navigation"],
 	"attributes": {
 		"label": {
-			"type": "string",
-			"default": ""
+			"type": "string"
 		},
 		"gatherpressTaxonomy": {
 			"type": "string",

@@ -98,8 +98,23 @@ export default function Edit( {
 	 */
 	const hasSubmenu = Boolean( gatherpressTaxonomy );
 
+	/**
+	 * Handle label changes.
+	 * Only save the label if it differs from the fallback.
+	 * This allows i18n to work properly when the label is not explicitly set.
+	 */
 	const onChangeLabel = ( newLabel ) => {
-		setAttributes( { label: newLabel } );
+		let labelToSave = newLabel;
+
+		if ( newLabel === fallbackLabel ) {
+			labelToSave = undefined;
+		}
+
+		if ( ! newLabel || newLabel.trim() === '' ) {
+			labelToSave = undefined;
+		}
+
+		setAttributes( { label: labelToSave } );
 	};
 
 	const onChangeTaxonomy = ( newTaxonomy ) => {
