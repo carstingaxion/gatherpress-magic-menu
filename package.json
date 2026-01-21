@@ -1,6 +1,6 @@
 {
     "name": "block-gatherpress-magic-menu",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "A navigation block that creates a dynamic GatherPress menu, with taxonomy-based submenus and upcoming event counters.",
     "author": "Carsten Bach",
     "license": "GPL-2.0-or-later",
