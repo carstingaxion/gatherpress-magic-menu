@@ -222,14 +222,4 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 
 ## Changelog
 
-### 0.1.0
-
-* Initial release
-* Navigation link to GatherPress events archive
-* Optional taxonomy-based submenus
-* Event count display for archive and term links
-* Three block styles: default, badge, starburst
-* Transient caching with automatic invalidation
-* Disabled state when no upcoming events
-* Integration with WordPress Navigation block
-
+All notable changes to this project will be documented in the [CHANGELOG.md](CHANGELOG.md).
