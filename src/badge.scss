@@ -1,0 +1,83 @@
+/**
+ * Frontend styles for GatherPress Magic Menu block.
+ *
+ * This file inherits most styling from the parent navigation block
+ * to maintain visual consistency with native navigation links.
+ *
+ * BEM Structure:
+ * - Block: .gatherpress-magic-menu
+ * - Element: .gatherpress-magic-menu__count
+ * - Modifier: .gatherpress-magic-menu--disabled
+ *
+ * @package GatherPressMagicMenu
+ */
+
+/**
+ * Block: GatherPress Magic Menu
+ * Base styles for the navigation block integration.
+ */
+.wp-block-gatherpress-magic-menu {
+
+    /**
+    * Block Style: Badge
+    * A subtle notification-style indicator positioned at the top right.
+    */
+    &.is-style-badge {
+
+        .wp-block-navigation-item__content {
+            position: relative;
+        }
+
+        .gatherpress-magic-menu__count {
+            position: absolute;
+            top: -0.5em;
+            right: -2em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.5em;
+            height: 1.5em;
+            padding: 0.2em 0.4em;
+            margin-left: 0;
+            border-radius: 999px;
+            background: #4a90e2;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.65em;
+            line-height: 1;
+            box-shadow: 0 1px 3px rgba(74, 144, 226, 0.3);
+            transition: background-color 0.2s ease;
+
+            &::before,
+            &::after {
+                content: none;
+            }
+        }
+
+        a:hover,
+        a:focus {
+
+            .gatherpress-magic-menu__count {
+                background: #357abd;
+                box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4);
+            }
+        }
+    }
+}
+
+/**
+* Modifier: Disabled State
+* Applied when there are no upcoming events.
+* Remove effects when the link is disabled.
+ */
+.gatherpress-magic-menu--disabled {
+	.is-style-badge {
+		/* stylelint-disable-next-line @stylistic/max-line-length */
+		/* stylelint-disable-next-line no-descending-specificity -- Stylelint is complaining for no reasons, I guess. */
+		.gatherpress-magic-menu__count {
+			opacity: 0.5;
+			box-shadow: none;
+			transform: none;
+		}
+	}
+}
