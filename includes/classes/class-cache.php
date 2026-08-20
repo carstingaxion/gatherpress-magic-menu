@@ -142,7 +142,6 @@ if ( ! class_exists( 'Cache' ) ) {
 				return $empty_array;
 			}
 
-			// @phpstan-ignore-next-line -- get_terms() is strangely marked as internal function in phpstan.
 			$terms = get_terms(
 				array(
 					'taxonomy'   => $taxonomy_slug,

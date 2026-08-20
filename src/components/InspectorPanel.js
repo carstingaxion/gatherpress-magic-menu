@@ -26,7 +26,7 @@ import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
  * @param {Function} props.onChangeTaxonomy           Taxonomy change handler.
  * @param {Function} props.onChangeShowEventCount     Event count toggle handler.
  * @param {Function} props.onChangeShowTermEventCount Term count toggle handler.
- * @return {JSX.Element} The inspector panel component.
+ * @return {Element} The inspector panel component.
  */
 export function InspectorPanel( {
 	gatherpressTaxonomy,

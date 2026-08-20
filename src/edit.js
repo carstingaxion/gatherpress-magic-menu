@@ -55,7 +55,7 @@ import { NavigationLink } from './components/NavigationLink';
  * @param {string}   props.clientId      Block client ID.
  * @param {Object}   props.context       Context from parent blocks.
  * @param {string}   props.className     The block's className.
- * @return {JSX.Element} Element to render.
+ * @return {Element} Element to render.
  */
 export default function Edit( {
 	attributes,
@@ -102,6 +102,8 @@ export default function Edit( {
 	 * Handle label changes.
 	 * Only save the label if it differs from the fallback.
 	 * This allows i18n to work properly when the label is not explicitly set.
+	 *
+	 * @param {string} newLabel - The new label value from the input.
 	 */
 	const onChangeLabel = ( newLabel ) => {
 		let labelToSave = newLabel;

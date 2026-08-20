@@ -29,7 +29,7 @@ import { LabelFormatter } from '../utils/LabelFormatter';
  * @param {string}  props.overlayClasses     CSS classes for overlay styling.
  * @param {Object}  props.overlayStyles      Inline styles for overlay.
  * @param {string}  props.className          Block className (for style variant).
- * @return {JSX.Element|null} The submenu placeholder or null.
+ * @return {Element|null} The submenu placeholder or null.
  */
 export function SubmenuPlaceholder( {
 	showTermEventCount,
