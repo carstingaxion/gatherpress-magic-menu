@@ -45,6 +45,7 @@ export function NavigationLink( {
 		<a
 			className={ linkClasses }
 			style={ linkStyles }
+			onClick={ ( e ) => e.preventDefault() }
 			href="#gatherpress-events-archive"
 			aria-label={ __(
 				'Link to GatherPress Events Archive',
