@@ -5,8 +5,8 @@
     "author": "Carsten Bach",
     "license": "GPL-2.0-or-later",
     "keywords": [
-        "gatherpress", 
-        "menu", 
+        "gatherpress",
+        "menu",
         "wordpress"
     ],
     "homepage": "https://github.com/carstingaxion/gatherpress-magic-menu#readme",
@@ -19,7 +19,7 @@
     },
     "main": "build/index.js",
     "devDependencies": {
-        "@wordpress/scripts": "^30.15.0"
+        "@wordpress/scripts": "^34.1.0"
     },
     "scripts": {
         "build": "wp-scripts build --webpack-copy-php",
