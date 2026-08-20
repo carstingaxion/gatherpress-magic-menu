@@ -237,7 +237,7 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 			}
 
 			// TODO: An Online-Event will have no Venue; prevent error on non-existent object.
-			$gatherpress_venue = Core\Venue::get_instance()->get_venue_post_from_term_slug( $term->slug );
+			$gatherpress_venue = Core\Venue\Setup::get_instance()->get_venue_post_from_term_slug( $term->slug );
 
 			if ( $gatherpress_venue instanceof \WP_Post ) {
 				$postlink = get_permalink( $gatherpress_venue );
