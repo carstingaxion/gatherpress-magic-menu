@@ -28,7 +28,7 @@ import { RichText } from '@wordpress/block-editor';
  * @param {Object}   props.linkStyles      Inline styles for link.
  * @param {Function} props.onChangeLabel   Label change handler.
  * @param {string}   props.className       Block className (for style variant).
- * @return {JSX.Element} The navigation link component.
+ * @return {Element} The navigation link component.
  */
 export function NavigationLink( {
 	effectiveLabel,
