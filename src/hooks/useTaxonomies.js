@@ -10,28 +10,47 @@ import { store as coreStore } from '@wordpress/core-data';
 import { useMemo } from '@wordpress/element';
 
 /**
- * Custom hook to fetch taxonomies registered with gatherpress_event.
+ * ============================================================================
+ * IMPORTS
+ * Internal dependencies
+ * ============================================================================
+ */
+import { useEventPostTypes } from './useEventPostTypes';
+
+/**
+ * Custom hook to fetch taxonomies registered with an event post type.
  *
  * Responsibilities:
  * - Query all taxonomies
- * - Filter to only gatherpress_event taxonomies
+ * - Filter to only taxonomies of post types with event support
  * - Format as options for SelectControl
  *
  * @since 0.1.0
  * @return {Array} Array of taxonomy options for SelectControl.
  */
 export function useTaxonomies() {
-	const taxonomies = useSelect( ( select ) => {
-		const { getTaxonomies } = select( coreStore );
-		const allTaxonomies = getTaxonomies( { per_page: -1 } ) || [];
+	const eventPostTypes = useEventPostTypes();
 
-		// Filter to only include taxonomies associated with gatherpress_event
-		return allTaxonomies.filter( ( taxonomy ) => {
-			return (
-				taxonomy.types && taxonomy.types.includes( 'gatherpress_event' )
+	const taxonomies = useSelect(
+		( select ) => {
+			const { getTaxonomies } = select( coreStore );
+			const allTaxonomies = getTaxonomies( { per_page: -1 } ) || [];
+			const eventSlugs = eventPostTypes.map(
+				( postType ) => postType.slug
 			);
-		} );
-	}, [] );
+
+			// Filter to only include taxonomies associated with an event post type
+			return allTaxonomies.filter( ( taxonomy ) => {
+				return (
+					taxonomy.types &&
+					taxonomy.types.some( ( type ) =>
+						eventSlugs.includes( type )
+					)
+				);
+			} );
+		},
+		[ eventPostTypes ]
+	);
 
 	const taxonomyOptions = useMemo( () => {
 		const options = [

@@ -5,15 +5,21 @@
  * ============================================================================
  */
 import { __ } from '@wordpress/i18n';
-import { useSelect } from '@wordpress/data';
-import { store as coreStore } from '@wordpress/core-data';
 import { useMemo } from '@wordpress/element';
 
 /**
- * Custom hook to get the plural label for gatherpress_event post type.
+ * ============================================================================
+ * IMPORTS
+ * Internal dependencies
+ * ============================================================================
+ */
+import { useEventPostTypes } from './useEventPostTypes';
+
+/**
+ * Custom hook to get the plural label for the primary event post type.
  *
  * Responsibilities:
- * - Fetch post type object
+ * - Pick the primary event post type (gatherpress_event first)
  * - Extract plural label
  * - Provide fallback if not available
  *
@@ -21,10 +27,11 @@ import { useMemo } from '@wordpress/element';
  * @return {string} The post type plural label or fallback.
  */
 export function usePostTypeLabel() {
-	const postType = useSelect( ( select ) => {
-		const { getPostType } = select( coreStore );
-		return getPostType( 'gatherpress_event' );
-	}, [] );
+	const eventPostTypes = useEventPostTypes();
+	const postType =
+		eventPostTypes.find(
+			( eventPostType ) => eventPostType.slug === 'gatherpress_event'
+		) || eventPostTypes[ 0 ];
 
 	const fallbackLabel = useMemo( () => {
 		if ( postType && postType.labels && postType.labels.name ) {

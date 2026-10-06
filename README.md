@@ -169,7 +169,7 @@ The link to the events archive is displayed with `aria-disabled="true"` and styl
 
 ### Can I customize which taxonomies appear?
 
-The block shows all taxonomies registered with the `gatherpress_event` post type. You select one taxonomy per block instance in the block settings.
+The block shows all taxonomies registered with a post type that supports `gatherpress-event-date`, which is `gatherpress_event` by default. You select one taxonomy per block instance in the block settings.
 
 ### How deep do submenus go?
 
@@ -198,7 +198,7 @@ No, the cache clears automatically. To force a refresh, temporarily unpublish an
 
 * [ ] Block Preview: Add a more realistic preview in the editor that shows actual term names (not just placeholders) when a taxonomy is selected, so editors can see what will render.
 * [ ] Empty State Messaging: When no upcoming events exist, consider showing an admin notice in the editor explaining why the link will be disabled.
-* [ ] Taxonomy Validation: Add validation to check if the selected taxonomy still exists/is still registered with gatherpress_event and show a warning if not.
+* [ ] Taxonomy Validation: Add validation to check if the selected taxonomy still exists/is still registered with an event post type and show a warning if not.
 
 ### Features
 

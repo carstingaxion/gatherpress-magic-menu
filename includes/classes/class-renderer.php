@@ -130,14 +130,14 @@ if ( ! class_exists( 'Renderer' ) ) {
 		/**
 		 * Gets the archive URL for GatherPress events.
 		 *
-		 * Attempts to get the archive link for the gatherpress_event post type.
+		 * Attempts to get the archive link for the primary event post type.
 		 * Falls back to home URL if the post type doesn't exist.
 		 *
 		 * @since 0.1.0
 		 * @return string The archive URL.
 		 */
 		private function get_events_archive_url(): string {
-			$post_type = 'gatherpress_event';
+			$post_type = Cache::get_instance()->get_primary_event_post_type();
 
 			if ( post_type_exists( $post_type ) ) {
 				$archive_url = get_post_type_archive_link( $post_type );

@@ -48,6 +48,35 @@ if ( ! class_exists( 'Cache' ) ) {
 		}
 
 		/**
+		 * Gets all post types that GatherPress treats as events.
+		 *
+		 * Post types opt in with the 'gatherpress-event-date' post type support.
+		 * Falls back to 'gatherpress_event' for GatherPress versions that do not declare the support yet.
+		 *
+		 * @since 0.1.0
+		 * @return array<int, string> Post type slugs.
+		 */
+		public function get_event_post_types(): array {
+			$post_types = get_post_types_by_support( 'gatherpress-event-date' );
+
+			return ! empty( $post_types ) ? array_values( $post_types ) : array( 'gatherpress_event' );
+		}
+
+		/**
+		 * Gets the post type used for the archive link, label and navigation link type.
+		 *
+		 * Prefers 'gatherpress_event', otherwise the first post type with event support.
+		 *
+		 * @since 0.1.0
+		 * @return string Post type slug.
+		 */
+		public function get_primary_event_post_type(): string {
+			$post_types = $this->get_event_post_types();
+
+			return in_array( 'gatherpress_event', $post_types, true ) ? 'gatherpress_event' : $post_types[0];
+		}
+
+		/**
 		 * Retrieves all upcoming GatherPress event IDs with caching.
 		 *
 		 * @since 0.1.0
@@ -86,7 +115,7 @@ if ( ! class_exists( 'Cache' ) ) {
 
 			$events = new \WP_Query(
 				array(
-					'post_type'               => 'gatherpress_event',
+					'post_type'               => $this->get_event_post_types(),
 					'post_status'             => 'publish',
 					'gatherpress_event_query' => 'upcoming',
 					'order'                   => 'desc',
@@ -237,8 +266,8 @@ if ( ! class_exists( 'Cache' ) ) {
 		 * @return void
 		 */
 		public function clear_cache_on_status_change( string $new_status, string $old_status, \WP_Post $post ): void {
-			// Only clear cache if this is a gatherpress_event post.
-			if ( 'gatherpress_event' !== $post->post_type ) {
+			// Only clear cache if this is an event post.
+			if ( ! in_array( $post->post_type, $this->get_event_post_types(), true ) ) {
 				return;
 			}
 	
@@ -254,7 +283,7 @@ if ( ! class_exists( 'Cache' ) ) {
 		 * Clears taxonomy-specific caches when terms are assigned to an event.
 		 *
 		 * Triggers when terms are set on a post (added, updated, or removed).
-		 * Only processes gatherpress_event posts and taxonomies registered with that post type.
+		 * Only processes event posts and taxonomies registered with an event post type.
 		 *
 		 * @since 0.1.0
 		 * @param int                    $object_id  Object ID.
@@ -264,14 +293,16 @@ if ( ! class_exists( 'Cache' ) ) {
 		 * @return void
 		 */
 		public function clear_cache_on_terms_change( int $object_id, array $terms, array $tt_ids, string $taxonomy ): void {
-			// Only process if this is a gatherpress_event post.
-			if ( 'gatherpress_event' !== get_post_type( $object_id ) ) {
+			$event_post_types = $this->get_event_post_types();
+
+			// Only process if this is an event post.
+			if ( ! in_array( get_post_type( $object_id ), $event_post_types, true ) ) {
 				return;
 			}
-	
-			// Verify the taxonomy is registered with gatherpress_event.
+
+			// Verify the taxonomy is registered with an event post type.
 			$taxonomy_object = get_taxonomy( $taxonomy );
-			if ( ! $taxonomy_object || ! in_array( 'gatherpress_event', (array) $taxonomy_object->object_type, true ) ) {
+			if ( ! $taxonomy_object || empty( array_intersect( $event_post_types, (array) $taxonomy_object->object_type ) ) ) {
 				return;
 			}
 	
