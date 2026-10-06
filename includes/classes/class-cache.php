@@ -45,6 +45,14 @@ if ( ! class_exists( 'Cache' ) ) {
 				add_action( 'transition_post_status', array( $this, 'clear_cache_on_status_change' ), 10, 3 );
 			}
 			add_action( 'set_object_terms', array( $this, 'clear_cache_on_terms_change' ), 10, 4 );
+
+			/**
+			 * Events end without any post status change, so the two hooks above never see it.
+			 *
+			 * This action is fired by "GatherPress Cache Invalidation Hooks", also in tracker mode.
+			 * Priority 20 runs after its own cleanup at priority 10, so a rebuild reads fresh data.
+			 */
+			add_action( 'gatherpress_event_ended', array( $this, 'clear_cache_on_event_ended' ), 20 );
 		}
 
 		/**
@@ -278,7 +286,26 @@ if ( ! class_exists( 'Cache' ) ) {
 			// Clear the taxonomy-specific term cache.
 			delete_transient( 'gatherpress_magic_menu_terms_' . $taxonomy );
 		}
-	
+
+		/**
+		 * Clears all caches when an event has ended.
+		 *
+		 * An ended event is no longer upcoming, so the cached event list
+		 * and the term counts built from it are outdated.
+		 *
+		 * @since 0.2.3
+		 * @param int $event_id Post ID of the event that ended.
+		 * @return void
+		 */
+		public function clear_cache_on_event_ended( int $event_id ): void {
+			// The action also fires for other post types that support event dates.
+			if ( 'gatherpress_event' !== get_post_type( $event_id ) ) {
+				return;
+			}
+
+			$this->clear_all_caches();
+		}
+
 		/**
 		 * Clears all plugin caches.
 		 *
