@@ -53,6 +53,7 @@ if ( ! class_exists( 'Renderer' ) ) {
 			$taxonomy_slug      = $this->get_taxonomy_slug( $attributes );
 			$show_count         = $this->get_show_event_count( $attributes );
 			$show_term_count    = $this->get_show_term_event_count( $attributes );
+			$count_position     = $this->get_count_position( $attributes );
 			$archive_url        = $this->get_events_archive_url();
 			$wrapper_attributes = get_block_wrapper_attributes();
 
@@ -60,20 +61,20 @@ if ( ! class_exists( 'Renderer' ) ) {
 			$total_count        = count( $upcoming_event_ids );
 
 			if ( empty( $upcoming_event_ids ) ) {
-				return $this->render_simple_link( $label, $archive_url, true, 0, $show_count, $wrapper_attributes, $block, $formatter, $builder, $processor );
+				return $this->render_simple_link( $label, $archive_url, true, 0, $show_count, $count_position, $wrapper_attributes, $block, $formatter, $builder, $processor );
 			}
 
 			if ( empty( $taxonomy_slug ) ) {
-				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block, $formatter, $builder, $processor );
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $count_position, $wrapper_attributes, $block, $formatter, $builder, $processor );
 			}
 
 			$terms_data = $cache->get_terms_with_event_counts( $taxonomy_slug, $upcoming_event_ids );
 
 			if ( empty( $terms_data ) ) {
-				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block, $formatter, $builder, $processor );
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $count_position, $wrapper_attributes, $block, $formatter, $builder, $processor );
 			}
 
-			return $this->render_submenu( $label, $archive_url, $terms_data, $taxonomy_slug, $total_count, $show_count, $show_term_count, $wrapper_attributes, $block, $formatter, $builder, $processor );
+			return $this->render_submenu( $label, $archive_url, $terms_data, $taxonomy_slug, $total_count, $show_count, $show_term_count, $count_position, $wrapper_attributes, $block, $formatter, $builder, $processor );
 		}
 
 		/**
@@ -128,6 +129,17 @@ if ( ! class_exists( 'Renderer' ) ) {
 		}
 
 		/**
+		 * Extracts the count position setting from attributes.
+		 *
+		 * @since 0.3.0
+		 * @param array<string, mixed> $attributes Block attributes.
+		 * @return string Either 'before' or 'after'.
+		 */
+		private function get_count_position( array $attributes ): string {
+			return ( isset( $attributes['countPosition'] ) && 'before' === $attributes['countPosition'] ) ? 'before' : 'after';
+		}
+
+		/**
 		 * Gets the archive URL for GatherPress events.
 		 *
 		 * Attempts to get the archive link for the gatherpress_event post type.
@@ -163,6 +175,7 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 * @param bool            $is_disabled         Whether the link should be disabled.
 		 * @param int             $event_count         The event count.
 		 * @param bool            $show_count          Whether to show event count.
+		 * @param string          $count_position      Count position, 'after' or 'before' the label.
 		 * @param string          $wrapper_attributes  Wrapper attributes from get_block_wrapper_attributes().
 		 * @param \WP_Block       $block               Block instance.
 		 * @param Label_Formatter $formatter          Formatter instance.
@@ -170,8 +183,8 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 * @param HTML_Processor  $processor          Processor instance.
 		 * @return string The rendered HTML.
 		 */
-		private function render_simple_link( string $label, string $archive_url, bool $is_disabled, int $event_count, bool $show_count, string $wrapper_attributes, \WP_Block $block, Label_Formatter $formatter, Block_Builder $builder, HTML_Processor $processor ): string {
-			$formatted_label = $formatter->format_label_with_count( $label, $event_count, $show_count );
+		private function render_simple_link( string $label, string $archive_url, bool $is_disabled, int $event_count, bool $show_count, string $count_position, string $wrapper_attributes, \WP_Block $block, Label_Formatter $formatter, Block_Builder $builder, HTML_Processor $processor ): string {
+			$formatted_label = $formatter->format_label_with_count( $label, $event_count, $show_count, $count_position );
 			// Inherit parent navigation context.
 			// $nav_context         = $this->get_navigation_context( $block ); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found .
 			/**
@@ -216,6 +229,7 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 * @param int                              $total_count        Total count of upcoming events.
 		 * @param bool                             $show_count         Whether to show event count for main archive.
 		 * @param bool                             $show_term_count    Whether to show event count for term links.
+		 * @param string                           $count_position     Count position, 'after' or 'before' the label.
 		 * @param string                           $wrapper_attributes Wrapper attributes from get_block_wrapper_attributes().
 		 * @param \WP_Block                        $block              Block instance.
 		 * @param Label_Formatter                  $formatter          Formatter instance.
@@ -223,8 +237,8 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 * @param HTML_Processor                   $processor          Processor instance.
 		 * @return string The rendered HTML.
 		 */
-		private function render_submenu( string $label, string $archive_url, array $terms_data, string $taxonomy_slug, int $total_count, bool $show_count, bool $show_term_count, string $wrapper_attributes, \WP_Block $block, Label_Formatter $formatter, Block_Builder $builder, HTML_Processor $processor ): string {
-			$formatted_label = $formatter->format_label_with_count( $label, $total_count, $show_count );
+		private function render_submenu( string $label, string $archive_url, array $terms_data, string $taxonomy_slug, int $total_count, bool $show_count, bool $show_term_count, string $count_position, string $wrapper_attributes, \WP_Block $block, Label_Formatter $formatter, Block_Builder $builder, HTML_Processor $processor ): string {
+			$formatted_label = $formatter->format_label_with_count( $label, $total_count, $show_count, $count_position );
 			// Inherit parent navigation context, but strip overlay colors
 			// so they do not affect the submenu trigger <li>.
 			// $nav_context         = $this->get_navigation_context( $block ); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found.
@@ -238,7 +252,7 @@ if ( ! class_exists( 'Renderer' ) ) {
 			$submenu_block       = $builder->create_submenu_block( $formatted_label, $archive_url, $reduced_nav_context );
 
 			if ( ! is_array( $submenu_block ) ) {
-				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $wrapper_attributes, $block, $formatter, $builder, $processor );
+				return $this->render_simple_link( $label, $archive_url, false, $total_count, $show_count, $count_position, $wrapper_attributes, $block, $formatter, $builder, $processor );
 			}
 
 			// Ensure innerBlocks array exists.
@@ -257,7 +271,7 @@ if ( ! class_exists( 'Renderer' ) ) {
 			 *   innerContent?: array<int, string|null>,
 			 * } $submenu_block
 			 */
-			$submenu_block = $builder->add_term_links_to_submenu( $submenu_block, $terms_data, $taxonomy_slug, $show_term_count, $nav_context );
+			$submenu_block = $builder->add_term_links_to_submenu( $submenu_block, $terms_data, $taxonomy_slug, $show_term_count, $nav_context, $count_position );
 
 			// Create a WP_Block instance to properly inherit context.
 			$submenu_wp_block = new \WP_Block( $submenu_block, array( 'postId' => get_the_ID() ) );

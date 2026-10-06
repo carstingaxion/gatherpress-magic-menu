@@ -160,9 +160,10 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 		 * @param string                           $taxonomy_slug  The taxonomy slug.
 		 * @param bool                             $show_count     Whether to show event count for term links.
 		 * @param array<string, mixed>             $nav_context    Navigation context including colors and styles.
+		 * @param string                           $count_position Count position, 'after' or 'before' the label.
 		 * @return array<string, mixed> The modified submenu block.
 		 */
-		public function add_term_links_to_submenu( array $submenu_block, array $terms_data, string $taxonomy_slug, bool $show_count, array $nav_context ): array {
+		public function add_term_links_to_submenu( array $submenu_block, array $terms_data, string $taxonomy_slug, bool $show_count, array $nav_context, string $count_position = 'after' ): array {
 			$formatter = Label_Formatter::get_instance();
 
 			foreach ( $terms_data as $term_info ) {
@@ -185,7 +186,8 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				$term_label = $formatter->format_label_with_count(
 					$term_info['name'],
 					$term_info['count'],
-					$show_count
+					$show_count,
+					$count_position
 				);
 
 				$link_attrs = array(

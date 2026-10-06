@@ -26,6 +26,8 @@ import { PanelBody, SelectControl, ToggleControl } from '@wordpress/components';
  * @param {Function} props.onChangeTaxonomy           Taxonomy change handler.
  * @param {Function} props.onChangeShowEventCount     Event count toggle handler.
  * @param {Function} props.onChangeShowTermEventCount Term count toggle handler.
+ * @param {string}   props.countPosition              Count position, 'after' or 'before' the label.
+ * @param {Function} props.onChangeCountPosition      Count position change handler.
  * @return {Element} The inspector panel component.
  */
 export function InspectorPanel( {
@@ -36,6 +38,8 @@ export function InspectorPanel( {
 	onChangeTaxonomy,
 	onChangeShowEventCount,
 	onChangeShowTermEventCount,
+	countPosition,
+	onChangeCountPosition,
 } ) {
 	return (
 		<InspectorControls>
@@ -72,6 +76,37 @@ export function InspectorPanel( {
 						onChange={ onChangeShowTermEventCount }
 						help={ __(
 							'Display the number of upcoming events next to each term link.',
+							'gatherpress-magic-menu'
+						) }
+					/>
+				) }
+				{ ( showEventCount ||
+					( gatherpressTaxonomy && showTermEventCount ) ) && (
+					<SelectControl
+						label={ __(
+							'Event Count Position',
+							'gatherpress-magic-menu'
+						) }
+						value={ countPosition }
+						options={ [
+							{
+								label: __(
+									'After the label',
+									'gatherpress-magic-menu'
+								),
+								value: 'after',
+							},
+							{
+								label: __(
+									'Before the label',
+									'gatherpress-magic-menu'
+								),
+								value: 'before',
+							},
+						] }
+						onChange={ onChangeCountPosition }
+						help={ __(
+							'Changes the order in the HTML, so screen readers also read the count first or last.',
 							'gatherpress-magic-menu'
 						) }
 					/>
