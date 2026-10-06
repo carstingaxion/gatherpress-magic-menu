@@ -38,7 +38,7 @@ if ( ! class_exists( 'Label_Formatter' ) ) {
 		 * @return string The fallback label from post type plural label.
 		 */
 		public function get_fallback_label(): string {
-			$post_type_object = get_post_type_object( 'gatherpress_event' );
+			$post_type_object = get_post_type_object( Cache::get_instance()->get_primary_event_post_type() );
 
 			if ( $post_type_object && isset( $post_type_object->labels->name ) && is_string( $post_type_object->labels->name ) ) {
 				return $post_type_object->labels->name;

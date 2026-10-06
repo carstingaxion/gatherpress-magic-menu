@@ -56,7 +56,7 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				'label' => $label,
 				'url'   => $archive_url,
 				'kind'  => 'post-type-archive',
-				'type'  => 'gatherpress_event',
+				'type'  => Cache::get_instance()->get_primary_event_post_type(),
 			);
 
 			$link_attrs = $this->apply_context_to_attributes( $link_attrs, $nav_context, false );
@@ -112,7 +112,7 @@ if ( ! class_exists( 'Block_Builder' ) ) {
 				'label' => $label,
 				'url'   => $archive_url,
 				'kind'  => 'post-type-archive',
-				'type'  => 'gatherpress_event',
+				'type'  => Cache::get_instance()->get_primary_event_post_type(),
 			);
 
 			if ( isset( $nav_context['showSubmenuIcon'] ) && ! $nav_context['showSubmenuIcon'] ) {
