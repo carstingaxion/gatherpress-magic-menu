@@ -58,7 +58,8 @@ The block integrates with WordPress's native Navigation block and inherits its s
 **Caching Behavior:**
 
 * Upcoming events query results cached for 7 days
-    * If "GatherPress Cache Invalidation Hooks" plugin is active, the data for upcoming events is coming from a fresh DB option. In this case the "GatherPress Magic Menu" does neither query for events, nor persisting anything. The DB option is updated whenever an event reaches its event-end-time.
+    * If "GatherPress Cache Invalidation Hooks" plugin is active and its upcoming events tracker is enabled, the data for upcoming events is coming from a fresh DB option. In this case the "GatherPress Magic Menu" does neither query for events, nor persisting anything. The DB option is updated whenever an event reaches its event-end-time.
+        * The tracker is off by default. Enable it with `add_filter( 'gatherpress_upcoming_tracker_enabled', '__return_true' );`. The filter `gatherpress_event_upcoming_tracker_enabled` works too.
 * Taxonomy term data cached separately per taxonomy
 * Caches cleared when:
     * Event post status changes to/from 'publish'

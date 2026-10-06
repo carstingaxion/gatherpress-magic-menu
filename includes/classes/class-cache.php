@@ -33,6 +33,14 @@ if ( ! class_exists( 'Cache' ) ) {
 		const CACHE_EXPIRY = WEEK_IN_SECONDS;
 
 		/**
+		 * Option name, where "GatherPress Cache Invalidation Hooks" keeps the upcoming event IDs.
+		 *
+		 * @since 0.2.3
+		 * @var string
+		 */
+		const UPCOMING_EVENTS_OPTION = 'upcoming_gatherpress_events';
+
+		/**
 		 * Private constructor to prevent direct instantiation.
 		 *
 		 * @since 0.1.0
@@ -41,10 +49,27 @@ if ( ! class_exists( 'Cache' ) ) {
 			/**
 			 * Use "GatherPress Cache Invalidation Hooks" instead of built-in cache invalidation, if available.
 			 */
-			if ( true !== apply_filters( 'gatherpress_upcoming_events_option_tracker_enabled', false ) ) {
+			if ( ! $this->is_upcoming_tracker_enabled() ) {
 				add_action( 'transition_post_status', array( $this, 'clear_cache_on_status_change' ), 10, 3 );
 			}
 			add_action( 'set_object_terms', array( $this, 'clear_cache_on_terms_change' ), 10, 4 );
+		}
+
+		/**
+		 * Checks if the upcoming events option tracker is enabled.
+		 *
+		 * These filters are coming from:
+		 * https://github.com/carstingaxion/gatherpress-cache-invalidation-hooks
+		 *
+		 * and are documented in:
+		 * includes/classes/class-option-tracker.php.
+		 *
+		 * @since 0.2.3
+		 * @return bool True if the upcoming events are kept in a DB option.
+		 */
+		private function is_upcoming_tracker_enabled(): bool {
+			return apply_filters( 'gatherpress_upcoming_tracker_enabled', false, 'gatherpress_event' )
+				|| apply_filters( 'gatherpress_event_upcoming_tracker_enabled', false );
 		}
 
 		/**
@@ -61,16 +86,10 @@ if ( ! class_exists( 'Cache' ) ) {
 			 * If "GatherPress Cache Invalidation Hooks" is active,
 			 * we can use an accurat option value, instead of querying for the events directly.
 			 *
-			 * The DB option will only be available, if this filter is enabled.
-			 * 
-			 * This filter is coming from:
-			 * https://github.com/carstingaxion/gatherpress-cache-invalidation-hooks
-			 *
-			 * and is documented in:
-			 * includes/classes/class-option-tracker.php.
+			 * The DB option will only be available, if the upcoming events option tracker is enabled.
 			 */
-			if ( true === apply_filters( 'gatherpress_upcoming_events_option_tracker_enabled', false ) ) {
-				$cached_events = get_option( 'gatherpress_upcoming_events' );
+			if ( $this->is_upcoming_tracker_enabled() ) {
+				$cached_events = get_option( self::UPCOMING_EVENTS_OPTION );
 			} else {
 				$cached_events = get_transient( $cache_key );
 			}
