@@ -63,6 +63,7 @@
 	],
 	"supports": {
 		"html": false,
+		"interactivity": true,
 		"reusable": true,
 		"color": {
 			"text": false,
@@ -95,5 +96,6 @@
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
 	"style": "file:./style-index.css",
+	"viewScriptModule": "file:./view.js",
 	"render": "file:./render.php"
 }

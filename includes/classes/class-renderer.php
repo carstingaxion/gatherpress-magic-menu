@@ -305,7 +305,7 @@ if ( ! class_exists( 'Renderer' ) ) {
 		 * @return string The rendered HTML.
 		 */
 		private function render_fallback_html( string $label, string $archive_url, bool $is_disabled, string $wrapper_attributes = '' ): string {
-			$disabled_attr  = $is_disabled ? ' aria-disabled="true"' : '';
+			$disabled_attr  = $is_disabled ? ' aria-disabled="true" data-wp-interactive="gatherpress/magic-menu" data-wp-on--click="actions.preventNavigation"' : '';
 			$disabled_class = $is_disabled ? ' gatherpress-magic-menu--disabled' : '';
 
 			return sprintf(
