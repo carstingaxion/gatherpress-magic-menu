@@ -196,6 +196,9 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 		/**
 		 * Adds aria-disabled attribute to the anchor tag.
 		 *
+		 * Also adds Interactivity API directives, so the view script
+		 * module blocks navigation on click and keyboard activation.
+		 *
 		 * @since 0.1.0
 		 * @param string $html The rendered HTML.
 		 * @return string The modified HTML.
@@ -211,7 +214,8 @@ if ( ! class_exists( 'HTML_Processor' ) ) {
 			) ) {
 				$processor->set_attribute( 'aria-disabled', 'true' );
 				$processor->set_attribute( 'aria-label', __( 'No upcoming events available', 'gatherpress-magic-menu' ) );
-
+				$processor->set_attribute( 'data-wp-interactive', 'gatherpress/magic-menu' );
+				$processor->set_attribute( 'data-wp-on--click', 'actions.preventNavigation' );
 			}
 
 			return $processor->get_updated_html();

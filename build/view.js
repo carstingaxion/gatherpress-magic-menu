@@ -1,0 +1,1 @@
+import{store as t,withSyncEvent as e}from"@wordpress/interactivity";t("gatherpress/magic-menu",{actions:{preventNavigation:e(t=>{t.preventDefault()})}});

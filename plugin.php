@@ -3,7 +3,7 @@
  * Plugin Name:       GatherPress Magic Menu
  * Description:       A navigation block that creates a dynamic GatherPress menu, with taxonomy-based submenus and upcoming event counters.
  * Version:           0.2.2
- * Requires at least: 6.4
+ * Requires at least: 6.8
  * Requires PHP:      7.4
  * Requires Plugins:  gatherpress
  * Author:            carstenbach & WordPress Telex
