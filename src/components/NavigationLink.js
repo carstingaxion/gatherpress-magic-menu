@@ -28,6 +28,7 @@ import { RichText } from '@wordpress/block-editor';
  * @param {Object}   props.linkStyles      Inline styles for link.
  * @param {Function} props.onChangeLabel   Label change handler.
  * @param {string}   props.className       Block className (for style variant).
+ * @param {string}   props.countPosition   Count position, 'after' or 'before' the label.
  * @return {Element} The navigation link component.
  */
 export function NavigationLink( {
@@ -40,7 +41,22 @@ export function NavigationLink( {
 	linkStyles,
 	onChangeLabel,
 	className,
+	countPosition,
 } ) {
+	const isCountBefore = 'before' === countPosition;
+	const count = showEventCount && (
+		<span
+			className={ sprintf(
+				'gatherpress-magic-menu__count%1$s %2$s',
+				isCountBefore ? ' gatherpress-magic-menu__count--before' : '',
+				className || ''
+			) }
+			dangerouslySetInnerHTML={ {
+				__html: 'n',
+			} }
+		/>
+	);
+
 	return (
 		<a
 			className={ linkClasses }
@@ -52,6 +68,7 @@ export function NavigationLink( {
 				'gatherpress-magic-menu'
 			) }
 		>
+			{ isCountBefore && count }
 			<RichText
 				identifier="label"
 				className="wp-block-navigation-item__label"
@@ -70,17 +87,7 @@ export function NavigationLink( {
 					'gatherpress-magic-menu'
 				) }
 			/>
-			{ showEventCount && (
-				<span
-					className={ sprintf(
-						'gatherpress-magic-menu__count %s',
-						className || ''
-					) }
-					dangerouslySetInnerHTML={ {
-						__html: 'n',
-					} }
-				/>
-			) }
+			{ ! isCountBefore && count }
 			{ hasSubmenu && showSubmenuIcon && (
 				<span
 					className="wp-block-navigation__submenu-icon"

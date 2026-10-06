@@ -31,6 +31,7 @@ defined( 'ABSPATH' ) || exit;
  *   gatherpressTaxonomy?: string,
  *   showEventCount?: bool,
  *   showTermEventCount?: bool,
+ *   countPosition?: string,
  * } $attributes
  * @var string $content
  * @var \WP_Block $block

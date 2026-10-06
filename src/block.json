@@ -24,6 +24,11 @@
 		"showTermEventCount": {
 			"type": "boolean",
 			"default": false
+		},
+		"countPosition": {
+			"type": "string",
+			"enum": ["after", "before"],
+			"default": "after"
 		}
 	},
 	"usesContext": [

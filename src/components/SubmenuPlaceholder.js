@@ -29,6 +29,7 @@ import { LabelFormatter } from '../utils/LabelFormatter';
  * @param {string}  props.overlayClasses     CSS classes for overlay styling.
  * @param {Object}  props.overlayStyles      Inline styles for overlay.
  * @param {string}  props.className          Block className (for style variant).
+ * @param {string}  props.countPosition      Count position, 'after' or 'before' the label.
  * @return {Element|null} The submenu placeholder or null.
  */
 export function SubmenuPlaceholder( {
@@ -36,6 +37,7 @@ export function SubmenuPlaceholder( {
 	overlayClasses,
 	overlayStyles,
 	className,
+	countPosition,
 } ) {
 	const exampleTerms = [
 		__( 'Example Term 1', 'gatherpress-magic-menu' ),
@@ -50,7 +52,8 @@ export function SubmenuPlaceholder( {
 				if ( showTermEventCount ) {
 					termLabelContent = LabelFormatter.formatWithCount(
 						termName,
-						className
+						className,
+						countPosition
 					);
 				} else {
 					termLabelContent = termName;

@@ -40,6 +40,12 @@
 	&::after {
 		content: ")";
 	}
+
+	/* Count is placed before the label, so the space goes to the other side. */
+	&--before {
+		margin-left: 0;
+		margin-right: 0.25em;
+	}
 }
 
 /**
@@ -57,6 +63,11 @@
 
 		&::after {
 			content: ")";
+		}
+
+		&--before {
+			margin-left: 0;
+			margin-right: 0.25em;
 		}
 	}
 }
@@ -94,6 +105,10 @@
 		&::before,
 		&::after {
 			content: none;
+		}
+
+		&--before {
+			margin-right: 0;
 		}
 	}
 
@@ -141,6 +156,11 @@
 		&::before,
 		&::after {
 			content: none;
+		}
+
+		&--before {
+			margin-left: 0;
+			margin-right: 0.5em;
 		}
 	}
 

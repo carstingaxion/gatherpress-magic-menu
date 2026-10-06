@@ -58,11 +58,26 @@ if ( ! class_exists( 'Label_Formatter' ) ) {
 		 * @param string $label      The base label.
 		 * @param int    $count      The event count.
 		 * @param bool   $show_count Whether to show the count.
+		 * @param string $position   Where to put the count in the markup, 'after' or 'before' the label.
 		 * @return string The formatted label HTML.
 		 */
-		public function format_label_with_count( string $label, int $count, bool $show_count ): string {
+		public function format_label_with_count( string $label, int $count, bool $show_count, string $position = 'after' ): string {
 			if ( ! $show_count ) {
 				return esc_html( $label );
+			}
+
+			if ( 'before' === $position ) {
+				$count_html = sprintf(
+					'<span class="gatherpress-magic-menu__count gatherpress-magic-menu__count--before">%d</span>',
+					(int) $count
+				);
+
+				return sprintf(
+					/* translators: 1: label text, 2: event count HTML. The count is placed before the label. */
+					__( '%2$s %1$s', 'gatherpress-magic-menu' ),
+					esc_html( $label ),
+					$count_html
+				);
 			}
 
 			$count_html = sprintf(

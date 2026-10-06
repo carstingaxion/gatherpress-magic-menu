@@ -64,8 +64,13 @@ export default function Edit( {
 	clientId,
 	className,
 } ) {
-	const { label, gatherpressTaxonomy, showEventCount, showTermEventCount } =
-		attributes;
+	const {
+		label,
+		gatherpressTaxonomy,
+		showEventCount,
+		showTermEventCount,
+		countPosition,
+	} = attributes;
 
 	/**
 	 * Extract navigation context and styling.
@@ -131,6 +136,10 @@ export default function Edit( {
 		setAttributes( { showTermEventCount: newValue } );
 	};
 
+	const onChangeCountPosition = ( newValue ) => {
+		setAttributes( { countPosition: newValue } );
+	};
+
 	/**
 	 * Build block wrapper props.
 	 */
@@ -171,6 +180,8 @@ export default function Edit( {
 				onChangeTaxonomy={ onChangeTaxonomy }
 				onChangeShowEventCount={ onChangeShowEventCount }
 				onChangeShowTermEventCount={ onChangeShowTermEventCount }
+				countPosition={ countPosition }
+				onChangeCountPosition={ onChangeCountPosition }
 			/>
 			<li { ...blockProps }>
 				<NavigationLink
@@ -183,6 +194,7 @@ export default function Edit( {
 					linkStyles={ linkStyles }
 					onChangeLabel={ onChangeLabel }
 					className={ className }
+					countPosition={ countPosition }
 				/>
 				{ hasSubmenu && (
 					<SubmenuPlaceholder
@@ -190,6 +202,7 @@ export default function Edit( {
 						overlayClasses={ overlayClasses }
 						overlayStyles={ overlayStyles }
 						className={ className }
+						countPosition={ countPosition }
 					/>
 				) }
 			</li>
